@@ -7,7 +7,7 @@
    - Comment lines start with a '#' followed by a space
    - blocks are defined within =<block>...</block>=
    - each key (line inside a block) can take an unlimited number of options
-   - The =importCfg= key allow to express an unlimited number of other cfg files
+   - The =importCfg= key allows one to express an unlimited number of other cfg files
      that are read sequentially before the current one so that blocks/keys that
      are present in more that one file are overwritten.
 ** The H4Reco dumper
