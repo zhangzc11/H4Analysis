@@ -1,0 +1,19 @@
+* H4Analyis
+  - This repository aims to provide a fast reconstruction of data
+    acquired with the H4DAQ mainly with the CAEN V1742 Digitizer
+  - The main program is the H4Reco ntuples producer which can be easily
+    configured through the input cfg file (examples in cfg/).
+** The cfg file
+   - Comment lines start with a '#' followed by a space
+   - blocks are defined within =<block>...</block>=
+   - each key (line inside a block) can take an unlimited number of options
+   - The =importCfg= key allow to express an unlimited number of other cfg files
+     that are read sequentially before the current one so that blocks/keys that
+     are present in more that one file are overwritten.
+** The H4Reco dumper
+   - Produce two trees:
+     + =reco_tree= : ntuples of reco variables (amplitude, time, baseline...) 
+       computed from the signal of each channel for each acquired event.
+     + =wf_tree= : stores the original waveform (if negative -WF is saved) of each channel.
+       A prescale is usually applied in order to reduce the size (tipically 1 out of 1000 
+       events is stored).
