@@ -63,8 +63,44 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
     return fitAmpMax_ = f_max.Eval(-f_max.GetParameter(1)/(2*f_max.GetParameter(2)));
 }
 
+//----------Get time with the specified method--------------------------------------------
+float WFClass::GetTime(string method, vector<float>& params)
+{
+    //---CFD
+    if(method == "CFD")
+    {
+        if(params.size()<1)
+            cout << ">>>ERROR: to few arguments passed for CFD time computation" << endl;
+        else if(params.size()<2)
+            return GetTimeCF(params[0]);
+        else if(params.size()<3)
+            return GetTimeCF(params[0], params[1]);
+        else
+            return GetTimeCF(params[0], params[1], params[2], params[3]);
+
+    }
+    //---LED
+    else if(method == "LED")
+    {
+        if(params.size()<1)
+            cout << ">>>ERROR: to few arguments passed for LED time computation" << endl;
+        else if(params.size()<2)
+            return GetTimeLE(params[0]);
+        else if(params.size()<4)
+            return GetTimeLE(params[0], params[1], params[2]);
+        else
+            return GetTimeLE(params[0], params[1], params[2], params[3], params[4]);
+
+    }
+    else
+    {
+        cout << ">>>ERROR: time reconstruction method <" << method << "> not supported" << endl;
+        return -1000;
+    }    
+}
+
 //----------Get CF time for a given fraction and in a given range-------------------------
-float WFClass::GetTimeCF(float frac, int min, int max, int nFitSamples)
+float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
 {
     if(frac == cfFrac_ && cfSample_ != -1)
         return cfTime_;
@@ -126,6 +162,51 @@ float WFClass::GetTimeCF(float frac, int min, int max, int nFitSamples)
     //---A+Bx = frac * amp
     cfTime_ = (fitAmpMax_ * frac - A) / B;
     return cfTime_;
+}
+
+//----------Get leading edge time at a given threshold and in a given range---------------
+float WFClass::GetTimeLE(float thr, int nmFitSamples, int npFitSamples, int min, int max)
+{
+    //---check if signal window is valid
+    if(min==max && max==-1 && sWinMin_==sWinMax_ && sWinMax_==-1)
+        return -1;
+    //---setup signal window
+    if(min!=-1 && max!=-1)
+        SetSignalWindow(min, max);
+    //---return time value if already computed
+    if(thr == leThr_ && leSample_ != -1)
+        return leTime_;
+
+    //---find first sample above thr
+    for(int iSample=sWinMin_; iSample>sWinMax_; ++iSample)
+    {
+        if(samples_.at(iSample) > thr) 
+        {
+            leSample_ = iSample;
+            break;
+        }
+    }
+
+    //---interpolate the rising edge
+    int sampleTot=nmFitSamples+npFitSamples+1;
+    int fit_range[2]={leSample_-nmFitSamples, leSample_+npFitSamples};
+    int bin=1;
+    TH1F h_edge("h_edge", "", sampleTot, fit_range[0], fit_range[1]);
+    for(int iSample=leSample_-nmFitSamples; iSample<=leSample_+npFitSamples; ++iSample)
+    {
+        if(samples_[iSample] < samples_[iSample-1]);
+        {
+            fit_range[1] = iSample-1;
+            break;
+        }
+        h_edge.SetBinContent(bin, samples_[iSample]);
+        h_edge.SetBinError(bin, GetBaselineRMS());
+        ++bin;
+    }
+    TF1 f_edge("f_edge", "pol1", fit_range[0], fit_range[1]);
+    h_edge.Fit(&f_edge, "R");
+
+    return leTime_ = (thr-f_edge.GetParameter(0))/f_edge.GetParameter(1);
 }
 
 //----------Get the waveform integral in the given range----------------------------------

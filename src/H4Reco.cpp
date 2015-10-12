@@ -39,7 +39,10 @@ int main(int argc, char* argv[])
     int nCh = opts.GetOpt<int>("global", "nCh");
     int nSamples = opts.GetOpt<int>("global", "nSamples");
     float tUnit = opts.GetOpt<float>("global", "tUnit");
-    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global", "channelsNames"); 
+    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global", "channelsNames");
+    map<string, vector<float> > timeOpts;
+    for(auto& channel : channelsNames)
+         timeOpts[channel] = opts.GetOpt<vector<float> >(channel, "timeOpts");
 
     //---definitions---
     int iEvent=1;
@@ -106,15 +109,15 @@ int main(int argc, char* argv[])
             //---skip everything if one channel has trigger the badEvent flag 
             if(badEvent)
                 break;
-            //---compute reco variables
+            //---compute reco variables            
             WF.SetBaselineWindow(opts.GetOpt<int>(channel, "baselineWin", 0), 
                                  opts.GetOpt<int>(channel, "baselineWin", 1));
             WF.SetSignalWindow(opts.GetOpt<int>(channel, "signalWin", 0), 
                                opts.GetOpt<int>(channel, "signalWin", 1));
             WF.SubtractBaseline();
             outTree.amp_max[outCh] = WF.GetAmpMax();
-            outTree.fit_amp_max[outCh] = WF.GetInterpolatedAmpMax();
-            outTree.time[outCh] = WF.GetTimeCF(0.5);
+            outTree.fit_amp_max[outCh] = WF.GetInterpolatedAmpMax();            
+            outTree.time[outCh] = WF.GetTime(opts.GetOpt<string>(channel, "timeType"), timeOpts[channel]);
             outTree.baseline[outCh] = WF.GetIntegral(opts.GetOpt<int>(channel, "baselineInt", 0), 
                                                      opts.GetOpt<int>(channel, "baselineInt", 1));
             outTree.charge_tot[outCh] = WF.GetModIntegral(opts.GetOpt<int>(channel, "baselineInt", 1), 

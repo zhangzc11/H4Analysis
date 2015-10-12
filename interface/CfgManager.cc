@@ -30,6 +30,20 @@ template<> string CfgManager::GetOpt(string block, string key, int opt)
     return opts_[block].at(key).at(opt);
 }
 
+template<> vector<float> CfgManager::GetOpt(string block, string key, int opt)
+{
+    Errors(block, key, opt);
+    vector<float> optsVect;
+    for(int iOpt=0; iOpt<opts_[block].at(key).size(); ++iOpt)
+    {
+        double opt_val;
+        istringstream buffer(opts_[block].at(key).at(opt));
+        buffer >> opt_val;
+        optsVect.push_back(opt_val);
+    }
+    return optsVect;
+}    
+
 template<> vector<string>& CfgManager::GetOpt(string block, string key, int opt)
 {
     Errors(block, key, opt);

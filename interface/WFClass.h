@@ -28,7 +28,9 @@ public:
     inline float          GetBaseline() {return baseline_;}
     float                 GetAmpMax(int min=-1, int max=-1);
     float                 GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
-    float                 GetTimeCF(float frac, int min=-1, int max=-1, int nFitSamples=5);
+    float                 GetTime(string method, vector<float>& params); 
+    float                 GetTimeCF(float frac, int nFitSamples=5, int min=-1, int max=-1);
+    float                 GetTimeLE(float thr, int nmFitSamples=1, int npFitSamples=3, int min=-1, int max=-1); 
     float                 GetIntegral(int min=-1, int max=-1);
     float                 GetSignalIntegral(int riseWin, int fallWin);
     float                 GetModIntegral(int min=-1, int max=-1);
@@ -55,6 +57,9 @@ private:
     int           cfSample_;
     float         cfFrac_;
     float         cfTime_;
+    int           leSample_;
+    float         leThr_;
+    float         leTime_;
     float         chi2_;
 };
 
