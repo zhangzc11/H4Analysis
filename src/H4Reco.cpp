@@ -35,10 +35,12 @@ int main(int argc, char* argv[])
     string run=opts.GetOpt<string>("global", "run");
     if(argc > 2)
         run = argv[2];
+    int maxEvents = opts.GetOpt<int>("global", "maxEvents");
     //---channels opts
     int nCh = opts.GetOpt<int>("global", "nCh");
     int nSamples = opts.GetOpt<int>("global", "nSamples");
     float tUnit = opts.GetOpt<float>("global", "tUnit");
+    bool useTrigRef = opts.GetOpt<int>("global", "useTrigRef");
     vector<string> channelsNames = opts.GetOpt<vector<string>& >("global", "channelsNames");
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
@@ -70,7 +72,7 @@ int main(int argc, char* argv[])
 
     //---process WFs---
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
-    while(h4Tree.NextEvt() && iEvent<opts.GetOpt<int>("global", "maxEvents"))
+    while(h4Tree.NextEvt() && (iEvent<maxEvents || maxEvents==-1))
     {        
         //---setup output event 
         int outCh=0;
@@ -88,7 +90,21 @@ int main(int argc, char* argv[])
         outTree.hodoX2 = beamXY_hodo12[2];
         outTree.hodoY2 = beamXY_hodo12[3]; 
 
-        //---read teh digitizer
+        //---read the digitizer
+        //---set time reference from digitized trigger
+        int timeRef=0;
+        if(useTrigRef)
+        {
+            for(int iSample=nSamples*8; iSample<nSamples*9; ++iSample)
+            {
+                if(h4Tree.digiSampleValue[iSample] < 1000)
+                {
+                    timeRef = iSample-nSamples*8;
+                    break;
+                }
+            }
+        }
+        //---user channels
         for(auto& channel : channelsNames)
         {
             //---read WFs
@@ -109,11 +125,11 @@ int main(int argc, char* argv[])
             //---skip everything if one channel has trigger the badEvent flag 
             if(badEvent)
                 break;
-            //---compute reco variables            
+            //---compute reco variables
             WF.SetBaselineWindow(opts.GetOpt<int>(channel, "baselineWin", 0), 
                                  opts.GetOpt<int>(channel, "baselineWin", 1));
-            WF.SetSignalWindow(opts.GetOpt<int>(channel, "signalWin", 0), 
-                               opts.GetOpt<int>(channel, "signalWin", 1));
+            WF.SetSignalWindow(opts.GetOpt<int>(channel, "signalWin", 0)+timeRef, 
+                               opts.GetOpt<int>(channel, "signalWin", 1)+timeRef);
             WF.SubtractBaseline();
             outTree.amp_max[outCh] = WF.GetAmpMax();
             outTree.fit_amp_max[outCh] = WF.GetInterpolatedAmpMax();            
