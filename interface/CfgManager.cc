@@ -37,7 +37,7 @@ template<> vector<float> CfgManager::GetOpt(string block, string key, int opt)
     for(int iOpt=0; iOpt<opts_[block].at(key).size(); ++iOpt)
     {
         double opt_val;
-        istringstream buffer(opts_[block].at(key).at(opt));
+        istringstream buffer(opts_[block].at(key).at(iOpt));
         buffer >> opt_val;
         optsVect.push_back(opt_val);
     }

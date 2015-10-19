@@ -18,7 +18,7 @@ class RecoTree
 {
 public: 
     //---ctors---
-    RecoTree(int nCh, int nSamples, vector<string> names, int* idx);
+    RecoTree(unsigned int nCh, int nSamples, vector<string> names, int* idx);
     //---dtor---
     ~RecoTree();
 
@@ -29,27 +29,27 @@ public:
 
     TTree* tree_; 
 
-    int*   index;
-    uint64 start_time;
-    uint64 time_stamp;
-    int    run;
-    int    spill;
-    int    event;   
-    int    n_channels;
-    int*   channels;
-    float* time;
-    float* amp_max;
-    float* fit_amp_max;
-    float* charge_tot;
-    float* charge_sig;
-    float* baseline;
-    float  hodoX1;
-    float  hodoY1;
-    float  hodoX2;
-    float  hodoY2;
+    int*         index;
+    uint64       start_time;
+    uint64       time_stamp;
+    unsigned int run;
+    unsigned int spill;
+    unsigned int event;   
+    unsigned int n_channels;
+    int*         channels;
+    float*       time;
+    float*       amp_max;
+    float*       fit_amp_max;
+    float*       charge_tot;
+    float*       charge_sig;
+    float*       baseline;
+    float        hodoX1;
+    float        hodoY1;
+    float        hodoX2;
+    float        hodoY2;
 };
 
-RecoTree::RecoTree(int nCh, int nSamples, vector<string> names, int* idx)
+RecoTree::RecoTree(unsigned int nCh, int nSamples, vector<string> names, int* idx)
 {
     tree_ = new TTree();
 
@@ -72,10 +72,10 @@ RecoTree::RecoTree(int nCh, int nSamples, vector<string> names, int* idx)
     tree_->Branch("index", index, "index/I");
     tree_->Branch("start_time", &start_time, "start_time/l");
     tree_->Branch("time_stamp", &time_stamp, "time_stamp/l");
-    tree_->Branch("run", &run, "run/I");
-    tree_->Branch("spill", &spill, "spill/I");
-    tree_->Branch("event", &event, "event/I");
-    tree_->Branch("n_channels", &n_channels, "n_channels/I");
+    tree_->Branch("run", &run, "run/i");
+    tree_->Branch("spill", &spill, "spill/i");
+    tree_->Branch("event", &event, "event/i");
+    tree_->Branch("n_channels", &n_channels, "n_channels/i");
     tree_->Branch("time", time, "time[n_channels]/F");
     tree_->Branch("fit_amp_max", fit_amp_max, "fit_amp_max[n_channels]/F");
     tree_->Branch("amp_max", amp_max, "amp_max[n_channels]/F");

@@ -124,7 +124,7 @@ float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
         return maxSample_;
     
     //---find first sample above Amax*frac
-    for(int iSample=maxSample_; iSample>tStart; iSample--)
+    for(int iSample=maxSample_; iSample>tStart; --iSample)
     {
         if(samples_.at(iSample) < fitAmpMax_*frac) 
         {
@@ -132,9 +132,12 @@ float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
             break;
         }
     }
-    for(int n=-(nFitSamples-1)/2; n<=(nFitSamples-1)/2; n++)
+
+    //---compute sums
+    int usedSamples=0;
+    for(int n=-(nFitSamples-1)/2; n<=(nFitSamples-1)/2; ++n)
     {
-        if(cfSample_+n<0 || cfSample_+n>=samples_.size()) 
+        if(cfSample_+n<0 || cfSample_+n>=maxSample_) 
 	    continue;
         xx = (cfSample_+n)*(cfSample_+n)*tUnit_*tUnit_;
         xy = (cfSample_+n)*tUnit_*(samples_.at(cfSample_+n));
@@ -142,19 +145,20 @@ float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
         Sy = Sy + samples_.at(cfSample_+n);
         Sxx = Sxx + xx;
         Sxy = Sxy + xy;
+        ++usedSamples;
     }
-
-    float Delta = nFitSamples*Sxx - Sx*Sx;
+    
+    float Delta = usedSamples*Sxx - Sx*Sx;
     float A = (Sxx*Sy - Sx*Sxy) / Delta;
     float B = (nFitSamples*Sxy - Sx*Sy) / Delta;
-    
+
     //---compute chi2---
     chi2_ = 0.;
     float sigma2 = pow(tUnit_/sqrt(12)*B,2);
  
     for(int n=-(nFitSamples-1)/2; n<=(nFitSamples-1)/2; n++)
     {
-        if(cfSample_+n<0 || cfSample_+n>=samples_.size()) 
+        if(cfSample_+n<0 || cfSample_+n>=maxSample_) 
             continue;
         chi2_ = chi2_ + pow(samples_.at(cfSample_+n) - A - B*((cfSample_+n)*tUnit_),2)/sigma2;
     } 

@@ -146,6 +146,7 @@ int main(int argc, char* argv[])
                 vector<float>* analizedWF = WF.GetSamples();
                 for(int jSample=0; jSample<analizedWF->size(); ++jSample)
                 {
+                    outWFTree.time_stamp = h4Tree.evtTime;
                     outWFTree.WF_ch[jSample+outCh*nSamples] = outCh;
                     outWFTree.WF_time[jSample+outCh*nSamples] = jSample*tUnit;
                     outWFTree.WF_val[jSample+outCh*nSamples] = analizedWF->at(jSample);
