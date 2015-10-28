@@ -4,7 +4,7 @@
 WFClass::WFClass(int polarity, float tUnit):
     polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
     bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), baseline_(-1), bRMS_(-1),
-    cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2_(-1)
+    cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1)
 {}
 //**********Getters***********************************************************************
 
@@ -150,17 +150,16 @@ float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
     
     float Delta = usedSamples*Sxx - Sx*Sx;
     float A = (Sxx*Sy - Sx*Sxy) / Delta;
-    float B = (nFitSamples*Sxy - Sx*Sy) / Delta;
+    float B = (usedSamples*Sxy - Sx*Sy) / Delta;
 
     //---compute chi2---
-    chi2_ = 0.;
+    chi2cf_ = 0.;
     float sigma2 = pow(tUnit_/sqrt(12)*B,2);
- 
     for(int n=-(nFitSamples-1)/2; n<=(nFitSamples-1)/2; n++)
     {
         if(cfSample_+n<0 || cfSample_+n>=maxSample_) 
             continue;
-        chi2_ = chi2_ + pow(samples_.at(cfSample_+n) - A - B*((cfSample_+n)*tUnit_),2)/sigma2;
+        chi2cf_ = chi2cf_ + pow(samples_.at(cfSample_+n) - A - B*((cfSample_+n)*tUnit_),2)/sigma2;
     } 
 
     //---A+Bx = frac * amp
@@ -181,6 +180,14 @@ float WFClass::GetTimeLE(float thr, int nmFitSamples, int npFitSamples, int min,
     if(thr == leThr_ && leSample_ != -1)
         return leTime_;
 
+    //---definitions---
+    float xx= 0.;
+    float xy= 0.;
+    float Sx = 0.;
+    float Sy = 0.;
+    float Sxx = 0.;
+    float Sxy = 0.;
+    
     //---find first sample above thr
     for(int iSample=sWinMin_; iSample>sWinMax_; ++iSample)
     {
@@ -191,26 +198,51 @@ float WFClass::GetTimeLE(float thr, int nmFitSamples, int npFitSamples, int min,
         }
     }
 
-    //---interpolate the rising edge
-    int sampleTot=nmFitSamples+npFitSamples+1;
-    int fit_range[2]={leSample_-nmFitSamples, leSample_+npFitSamples};
-    int bin=1;
-    TH1F h_edge("h_edge", "", sampleTot, fit_range[0], fit_range[1]);
-    for(int iSample=leSample_-nmFitSamples; iSample<=leSample_+npFitSamples; ++iSample)
+    //---compute sums
+    int usedSamples=0;
+    for(int n=-nmFitSamples; n<=npFitSamples; ++n)
     {
-        if(samples_[iSample] < samples_[iSample-1]);
-        {
-            fit_range[1] = iSample-1;
-            break;
-        }
-        h_edge.SetBinContent(bin, samples_[iSample]);
-        h_edge.SetBinError(bin, GetBaselineRMS());
-        ++bin;
+        if(leSample_+n<0 || leSample_+n>=maxSample_) 
+	    continue;
+        xx = (leSample_+n)*(leSample_+n)*tUnit_*tUnit_;
+        xy = (leSample_+n)*tUnit_*(samples_.at(leSample_+n));
+        Sx = Sx + (leSample_+n)*tUnit_;
+        Sy = Sy + samples_.at(leSample_+n);
+        Sxx = Sxx + xx;
+        Sxy = Sxy + xy;
+        ++usedSamples;
     }
-    TF1 f_edge("f_edge", "pol1", fit_range[0], fit_range[1]);
-    h_edge.Fit(&f_edge, "R");
+    
+    float Delta = usedSamples*Sxx - Sx*Sx;
+    float A = (Sxx*Sy - Sx*Sxy) / Delta;
+    float B = (usedSamples*Sxy - Sx*Sy) / Delta;
 
-    return leTime_ = (thr-f_edge.GetParameter(0))/f_edge.GetParameter(1);
+    //---compute chi2---
+    chi2le_ = 0.;
+    float sigma2 = pow(tUnit_/sqrt(12)*B,2);
+    for(int n=nmFitSamples; n<=npFitSamples; n++)
+    {
+        if(leSample_+n<0 || leSample_+n>=maxSample_) 
+            continue;
+        chi2le_ = chi2le_ + pow(samples_.at(leSample_+n) - A - B*((leSample_+n)*tUnit_),2)/sigma2;
+    } 
+
+    //---A+Bx = frac * amp
+    leTime_ = (thr - A) / B;
+    return leTime_;
+}
+
+//----------Get Chi2 of the specified time extraction algorithm---------------------------
+float WFClass::GetChi2(string type)
+{
+    if(type == "CFD")
+        return chi2cf_;
+    else if(type == "LED")
+        return chi2le_;
+    else
+        cout << ">>>ERROR: algorithm <" << type << "> is not supported" << endl;
+
+    return -1;
 }
 
 //----------Get the waveform integral in the given range----------------------------------
@@ -317,3 +349,4 @@ bool WFClass::SubtractBaseline(int min, int max)
     
     return true;
 }
+

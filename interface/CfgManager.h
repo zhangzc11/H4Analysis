@@ -12,9 +12,11 @@
 #include <algorithm> 
 #include <iomanip>
 
+#include "TObject.h"
+
 using namespace std;
 
-class CfgManager
+class CfgManager: public TObject
 {
 public:
     //---ctors---
@@ -35,12 +37,16 @@ public:
     void                   Errors(string block, string key, int opt=0);
     inline void            ParseConfigFile(string* file) {ParseConfigFile(file->c_str());};
     void                   ParseConfigFile(const char* file);
+    virtual void           Print(Option_t* option="") const;
 
     //---operators---
     friend ostream& operator<<(ostream& out, const CfgManager& obj);
 
 private:
     map<string, map<string, vector<string> > >  opts_;
+
+    //---ROOT dictionary
+    ClassDef(CfgManager, 1)
 };
 
 #endif

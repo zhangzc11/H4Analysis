@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
         outTree.AddFriend();
     }
     outTree.Write();
+    opts.Write("cfg");
     outROOT->Close();
 }
 

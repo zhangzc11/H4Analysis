@@ -1,4 +1,4 @@
-#include "../interface/CfgManager.h"
+#include "CfgManager.h"
 
 //**********getters***********************************************************************
 
@@ -126,6 +126,11 @@ void CfgManager::ParseConfigFile(const char* file)
         }
     }
     cfgFile.close();
+}
+
+void CfgManager::Print(Option_t* option) const
+{
+    cout << *this << endl;
 }
 
 //**********operators*********************************************************************
