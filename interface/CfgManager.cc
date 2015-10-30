@@ -1,55 +1,5 @@
 #include "CfgManager.h"
 
-//**********getters***********************************************************************
-
-//----------get option by name------------------------------------------------------------
-template<> double CfgManager::GetOpt(string block, string key, int opt)
-{
-    Errors(block, key, opt);
-    
-    double opt_val;
-    istringstream buffer(opts_[block].at(key).at(opt));
-    buffer >> opt_val;
-    
-    return opt_val;
-}
-
-template<> float CfgManager::GetOpt(string block, string key, int opt)
-{
-    return (float)GetOpt<double>(block, key, opt);
-}
-
-template<> int CfgManager::GetOpt(string block, string key, int opt)
-{
-    return (int)GetOpt<double>(block, key, opt);
-}
-
-template<> string CfgManager::GetOpt(string block, string key, int opt)
-{
-    Errors(block, key, opt);
-    return opts_[block].at(key).at(opt);
-}
-
-template<> vector<float> CfgManager::GetOpt(string block, string key, int opt)
-{
-    Errors(block, key, opt);
-    vector<float> optsVect;
-    for(int iOpt=0; iOpt<opts_[block].at(key).size(); ++iOpt)
-    {
-        double opt_val;
-        istringstream buffer(opts_[block].at(key).at(iOpt));
-        buffer >> opt_val;
-        optsVect.push_back(opt_val);
-    }
-    return optsVect;
-}    
-
-template<> vector<string>& CfgManager::GetOpt(string block, string key, int opt)
-{
-    Errors(block, key, opt);
-    return opts_[block].at(key);
-}    
-
 //**********utils*************************************************************************
 
 void CfgManager::Errors(string block, string key, int opt)
@@ -135,6 +85,7 @@ void CfgManager::Print(Option_t* option) const
 
 //**********operators*********************************************************************
 
+//template<typename T>
 ostream& operator<<(ostream& out, const CfgManager& obj)
 {
     map<string, map<string, vector<string> > >::const_iterator itBlock;

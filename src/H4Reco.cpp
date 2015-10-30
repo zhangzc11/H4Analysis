@@ -8,6 +8,7 @@
 #include "TTree.h"
 
 #include "interface/CfgManager.h"
+#include "interface/CfgManagerT.h"
 #include "interface/H4Tree.h"
 #include "interface/RecoTree.h"
 #include "interface/WFTree.h"
