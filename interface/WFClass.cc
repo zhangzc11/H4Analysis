@@ -4,7 +4,8 @@
 WFClass::WFClass(int polarity, float tUnit):
     polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
     bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), baseline_(-1), bRMS_(-1),
-    cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1)
+    cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1),
+    fWinMin_(-1), fWinMax_(-1), tempFitTime_(-1), tempFitAmp_(-1)
 {}
 //**********Getters***********************************************************************
 
@@ -164,6 +165,7 @@ float WFClass::GetTimeCF(float frac, int nFitSamples, int min, int max)
 
     //---A+Bx = frac * amp
     cfTime_ = (fitAmpMax_ * frac - A) / B;
+
     return cfTime_;
 }
 
@@ -326,6 +328,40 @@ void WFClass::SetBaselineWindow(int min, int max)
     bWinMax_=max;
 }
 
+//----------Set the fit template----------------------------------------------------------
+void WFClass::SetTemplate(TH1* templateWF, int lW, int hW)
+{
+    //---check input
+    if(!templateWF)
+    {
+        cout << ">>>ERROR: template passed as input do not exist" << endl;
+        return;
+    }
+    
+    //---reset template fit variables
+    if(interpolator_)
+        delete interpolator_;
+    interpolator_ = new ROOT::Math::Interpolator(MAX_INTERPOLATOR_POINTS, ROOT::Math::Interpolation::kCSPLINE);
+    tempFitTime_ = templateWF->GetBinCenter(templateWF->GetMaximumBin());
+    tempFitAmp_ = -1;
+    //---set template fit window around maximum, [min, max) --- template X scale is in ns.
+    GetBaselineRMS();
+    GetAmpMax();    
+    fWinMin_ = maxSample_ - lW;
+    fWinMax_ = maxSample_ + hW;
+    
+    //---fill interpolator data
+    vector<double> x, y;
+    for(int iBin=1; iBin<=templateWF->GetNbinsX(); ++iBin)
+    {
+	x.push_back(templateWF->GetBinCenter(iBin));
+	y.push_back(polarity_*templateWF->GetBinContent(iBin));
+    }
+    interpolator_->SetData(x, y);
+
+    return;
+}
+
 //**********Utils*************************************************************************
 
 //---------estimate the baseline in a given range and then subtract it from the signal----
@@ -350,3 +386,56 @@ bool WFClass::SubtractBaseline(int min, int max)
     return true;
 }
 
+//----------template fit to the WF--------------------------------------------------------
+WFFitResults WFClass::TemplateFit()
+{
+    if(tempFitAmp_ == -1)
+    {
+        ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+
+        minimizer->SetMaxFunctionCalls(100000);
+        minimizer->SetMaxIterations(100);
+        minimizer->SetTolerance(1e-3);
+        minimizer->SetPrintLevel(0);
+
+        ROOT::Math::Functor chi2(this, &WFClass::TemplateChi2, 2);
+        minimizer->SetFunction(chi2);
+        minimizer->SetLimitedVariable(0, "amplitude", GetAmpMax(), 1e-2, 0., 4000.);
+        minimizer->SetLimitedVariable(1, "deltaT", maxSample_, 1e-2, 0., 1024.);
+
+        minimizer->Minimize();
+        tempFitAmp_ = minimizer->X()[0];
+        tempFitTime_ += minimizer->X()[1];
+
+        delete minimizer;        
+    }
+    
+    return WFFitResults{tempFitAmp_, tempFitTime_, TemplateChi2()};
+}
+    
+//----------chi2 for template fit---------------------------------------------------------
+double WFClass::TemplateChi2(const double* par)
+{
+    double chi2 = 0;
+    double delta = 0;
+    for(int iSample=fWinMin_; iSample<fWinMax_; ++iSample)
+    {
+	if(iSample < 0 || iSample >= samples_.size())
+        {
+            cout << ">>>ERROR: template fit out of samples rage" << endl;
+	    chi2 += 9999;
+        }
+	else
+        {
+            //---fit: par[0]*ref_shape(t-par[1]) par[0]=amplitude, par[1]=DeltaT
+            //---if not fitting return chi2 value of best fit
+            if(par)
+                delta = (samples_[iSample] - par[0]*interpolator_->Eval(iSample*tUnit_-par[1]))/bRMS_;
+            else
+                delta = (samples_[iSample] - tempFitAmp_*interpolator_->Eval(iSample*tUnit_-tempFitTime_))/bRMS_;
+	    chi2 += delta*delta;
+        }
+    }
+    
+    return chi2;
+}

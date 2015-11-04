@@ -8,10 +8,24 @@
 #include <cmath>
 #include <algorithm>
 
+#include "Math/Interpolator.h"
+#include "Math/Minimizer.h"
+#include "Math/Factory.h"
+#include "Math/Functor.h"
+#include "TMath.h"
 #include "TH1F.h"
 #include "TF1.h"
 
 using namespace std;
+
+#define MAX_INTERPOLATOR_POINTS 10000
+
+struct WFFitResults
+{
+    double ampl;
+    double time;
+    double chi2;
+};      
 
 class WFClass 
 {
@@ -38,10 +52,16 @@ public:
     //---setters---
     void                  SetSignalWindow(int min, int max);
     void                  SetBaselineWindow(int min, int max);
+    void                  SetTemplate(TH1* templateWF=NULL, int lW=0, int hW=0);
     //---utils---
     void                  AddSample(float sample) {samples_.push_back(polarity_*sample);};
     bool                  SubtractBaseline(int min=-1, int max=-1);
+    WFFitResults          TemplateFit();
 
+private:
+    //---utils---
+    double                TemplateChi2(const double* par=NULL);
+    
 private:
     vector<float> samples_;
     float         tUnit_;
@@ -62,6 +82,11 @@ private:
     float         leTime_;
     float         chi2cf_;
     float         chi2le_;
+    int           fWinMin_;
+    int           fWinMax_;
+    float         tempFitTime_;
+    float         tempFitAmp_;
+    ROOT::Math::Interpolator* interpolator_;
 };
 
 #endif

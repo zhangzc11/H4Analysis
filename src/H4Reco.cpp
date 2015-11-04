@@ -141,6 +141,16 @@ int main(int argc, char* argv[])
                                                           nSamples);
             outTree.charge_sig[outCh] = WF.GetSignalIntegral(opts.GetOpt<int>(channel, "signalInt", 0), 
                                                              opts.GetOpt<int>(channel, "signalInt", 1));
+            //---template fit (only specified channels)
+            WFFitResults fitResults{-1, -1000, -1};
+            if(opts.GetOpt<bool>(channel, "templateFit"))
+            {
+                TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel, "templateFit", 1).c_str(), "READ");
+                WF.SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel, "templateFit", 1).c_str()),
+                               200, 700);
+                fitResults = WF.TemplateFit();
+            }
+                
             //---WFs---
             if(fillWFtree)
             {
