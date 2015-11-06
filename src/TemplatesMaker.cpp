@@ -15,7 +15,7 @@
 using namespace std;
 
 //----------DFT---------------------------------------------------------------------------
-pair<TH1F, TH1F> DFT_cut(TProfile* inWave, string name, float fCut=50)
+pair<TH1F, TH1F> DFT_cut(TProfile* inWave, string name, float fCut=800)
 {
     float *Re, *Im, *mod;
     int nbins = inWave->GetNbinsX();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
     outROOT->cd();
     for(auto& channel : channelsNames)
     {
-        pair<TH1F, TH1F> dft = DFT_cut(templates[channel], channel, 8000);
+        pair<TH1F, TH1F> dft = DFT_cut(templates[channel], channel, 800);
         dft.first.Write();
         dft.second.Write();
         templates[channel]->Write();
