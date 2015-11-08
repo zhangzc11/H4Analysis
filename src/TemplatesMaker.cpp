@@ -25,7 +25,7 @@ pair<TH1F, TH1F> DFT_cut(TProfile* inWave, string name, float fCut=800)
     string nameDFT = "DFT_"+name;
     name = "cleaned_"+name;
     TH1F outDFT(nameDFT.c_str(), nameDFT.c_str(), nbins/2, 0, nbins/2);
-    TH1F outWave(name.c_str(), name.c_str(), nbins, -100, 100); 
+    TH1F outWave(name.c_str(), name.c_str(), nbins, -40, 160); 
     for(int k=0; k<nbins/2; k++) 
     { 
         Re[k]=0;
@@ -76,22 +76,22 @@ int main(int argc, char* argv[])
     opts.ParseConfigFile(argv[1]);
 
     //---data opts
-    string path=opts.GetOpt<string>("global", "path2data");
-    string run=opts.GetOpt<string>("global", "run");
-    string outSuffix=opts.GetOpt<string>("global", "outFileSuffix");
+    string path=opts.GetOpt<string>("global.path2data");
+    string run=opts.GetOpt<string>("global.run");
+    string outSuffix=opts.GetOpt<string>("global.outFileSuffix");
     if(argc > 2)
         run = argv[2];
-    int maxEvents = opts.GetOpt<int>("global", "maxEvents");
+    int maxEvents = opts.GetOpt<int>("global.maxEvents");
     //---channels opts
-    int nCh = opts.GetOpt<int>("global", "nCh");
-    int nSamples = opts.GetOpt<int>("global", "nSamples");
-    float tUnit = opts.GetOpt<float>("global", "tUnit");
-    string refChannel = opts.GetOpt<string>("global", "refChannel");
-    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global", "channelsNames");
+    int nCh = opts.GetOpt<int>("global.nCh");
+    int nSamples = opts.GetOpt<int>("global.nSamples");
+    float tUnit = opts.GetOpt<float>("global.tUnit");
+    string refChannel = opts.GetOpt<string>("global.refChannel");
+    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
     map<string, vector<float> > timeOpts;
-    timeOpts[refChannel] = opts.GetOpt<vector<float> >(refChannel, "timeOpts");
+    timeOpts[refChannel] = opts.GetOpt<vector<float> >(refChannel+".timeOpts");
     for(auto& channel : channelsNames)
-         timeOpts[channel] = opts.GetOpt<vector<float> >(channel, "timeOpts");
+         timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
 
     //---definitions---
     int iEvent=1;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     map<string, TProfile*> templates;
     for(auto channel : channelsNames)
         templates[channel] = new TProfile(channel.c_str(), channel.c_str(),
-                                          8000, -100, 100, -0.5, 1.1);
+                                          8000, -40, 160, -0.5, 1.1);
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -125,9 +125,9 @@ int main(int argc, char* argv[])
         //---read the digitizer
         //---read time raference channel
         float refTime=0, refAmpl=0;
-        WFClass WF(opts.GetOpt<int>(refChannel, "polarity"), tUnit);
-        int digiGr = opts.GetOpt<int>(refChannel, "digiGroup");
-        int digiCh = opts.GetOpt<int>(refChannel, "digiChannel");
+        WFClass WF(opts.GetOpt<int>(refChannel+".polarity"), tUnit);
+        int digiGr = opts.GetOpt<int>(refChannel+".digiGroup");
+        int digiCh = opts.GetOpt<int>(refChannel+".digiChannel");
         int offset = digiGr*9*nSamples + digiCh*nSamples;
         for(int iSample=offset; iSample<offset+nSamples; ++iSample)
         {
@@ -142,26 +142,26 @@ int main(int argc, char* argv[])
         //---skip bad events
         if(badEvent)
             continue;
-        WF.SetBaselineWindow(opts.GetOpt<int>(refChannel, "baselineWin", 0), 
-                             opts.GetOpt<int>(refChannel, "baselineWin", 1));
-        WF.SetSignalWindow(opts.GetOpt<int>(refChannel, "signalWin", 0), 
-                           opts.GetOpt<int>(refChannel, "signalWin", 1));
+        WF.SetBaselineWindow(opts.GetOpt<int>(refChannel+".baselineWin", 0), 
+                             opts.GetOpt<int>(refChannel+".baselineWin", 1));
+        WF.SetSignalWindow(opts.GetOpt<int>(refChannel+".signalWin", 0), 
+                           opts.GetOpt<int>(refChannel+".signalWin", 1));
         WF.SubtractBaseline();
         refAmpl = WF.GetInterpolatedAmpMax();            
-        refTime = WF.GetTime(opts.GetOpt<string>(refChannel, "timeType"), timeOpts[refChannel]);
+        refTime = WF.GetTime(opts.GetOpt<string>(refChannel+".timeType"), timeOpts[refChannel]).first;
         //---require reference channel to be good
-        if(refTime/tUnit < opts.GetOpt<int>(refChannel, "signalWin", 0) ||
-           refTime/tUnit > opts.GetOpt<int>(refChannel, "signalWin", 1) ||
-           refAmpl < opts.GetOpt<int>(refChannel, "amplitudeThreshold"))
+        if(refTime/tUnit < opts.GetOpt<int>(refChannel+".signalWin", 0) ||
+           refTime/tUnit > opts.GetOpt<int>(refChannel+".signalWin", 1) ||
+           refAmpl < opts.GetOpt<int>(refChannel+".amplitudeThreshold"))
             continue;
         
         //---template channels
         for(auto& channel : channelsNames)
         {
             //---read WFs
-            WFClass WF(opts.GetOpt<int>(channel, "polarity"), tUnit);
-            int digiGr = opts.GetOpt<int>(channel, "digiGroup");
-            int digiCh = opts.GetOpt<int>(channel, "digiChannel");
+            WFClass WF(opts.GetOpt<int>(channel+".polarity"), tUnit);
+            int digiGr = opts.GetOpt<int>(channel+".digiGroup");
+            int digiCh = opts.GetOpt<int>(channel+".digiChannel");
             int offset = digiGr*9*nSamples + digiCh*nSamples;
             for(int iSample=offset; iSample<offset+nSamples; ++iSample)
             {
@@ -178,21 +178,21 @@ int main(int argc, char* argv[])
                 continue;
             //---compute reco variables
             float channelTime=0, channelAmpl=0;            
-            WF.SetBaselineWindow(opts.GetOpt<int>(channel, "baselineWin", 0), 
-                                 opts.GetOpt<int>(channel, "baselineWin", 1));
-            WF.SetSignalWindow(opts.GetOpt<int>(channel, "signalWin", 0), 
-                               opts.GetOpt<int>(channel, "signalWin", 1));
+            WF.SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
+                                 opts.GetOpt<int>(channel+".baselineWin", 1));
+            WF.SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0), 
+                               opts.GetOpt<int>(channel+".signalWin", 1));
             WF.SubtractBaseline();
             channelAmpl = WF.GetInterpolatedAmpMax();            
-            channelTime = WF.GetTime(opts.GetOpt<string>(channel, "timeType"), timeOpts[channel]);
+            channelTime = WF.GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]).first;
             //---skip bad events or events with no signal
-            if(channelTime/tUnit > opts.GetOpt<int>(channel, "signalWin", 0) &&
-               channelTime/tUnit < opts.GetOpt<int>(channel, "signalWin", 1) &&
-               channelAmpl > opts.GetOpt<int>(channel, "amplitudeThreshold"))
+            if(channelTime/tUnit > opts.GetOpt<int>(channel+".signalWin", 0) &&
+               channelTime/tUnit < opts.GetOpt<int>(channel+".signalWin", 1) &&
+               channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold"))
             {                
                 vector<float>* analizedWF = WF.GetSamples();
                 for(int iSample=0; iSample<analizedWF->size(); ++iSample)
-                    templates[channel]->Fill(iSample*tUnit-channelTime-refTime, analizedWF->at(iSample)/channelAmpl);
+                    templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
             }
         }
     }   

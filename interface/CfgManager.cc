@@ -2,32 +2,23 @@
 
 //**********utils*************************************************************************
 
-void CfgManager::Errors(string block, string key, int opt)
+//----------Check if the key is in cfg----------------------------------------------------
+bool CfgManager::OptExist(string key)
 {
-    if(opts_.count(block) == 0)
-    {
-        cout << "> CfgManager --- ERROR: block '"<< block << "' not found" << endl;
-        exit(-1);
-    }
-    if(opts_[block].count(key) == 0)
-    {
-        cout << "> CfgManager --- ERROR: option '"<< key << "' not found" << endl;
-        exit(-1);
-    }
-    if(opt >= opts_[block].at(key).size())
-    {
-        cout << "> CfgManager --- ERROR: option '"<< key << "' as less then "
-             << opt << "values (" << opts_[block].at(key).size() << ")" << endl;
-        exit(-1);
-    }
-    return;
+    for(auto& opt : opts_)
+        if(opt.first.find(key) != string::npos)
+            return true;
+
+    return false;
 }
 
+//----------Parse configuration file and setup the configuration--------------------------
 void CfgManager::ParseConfigFile(const char* file)
 {
+    //---read config file
     ifstream cfgFile(file, ios::in);
     string buffer;
-    string current_block="global";
+    string current_block="opts";
     map<string, vector<string> > block_opts;
     while(getline(cfgFile, buffer))
     {
@@ -43,13 +34,9 @@ void CfgManager::ParseConfigFile(const char* file)
             {
                 tokens.at(0).erase(tokens.at(0).begin(), tokens.at(0).begin()+2);
                 tokens.at(0).erase(--tokens.at(0).end());
-                if(tokens.at(0) == current_block)
-                {
-                    for(auto& opt : block_opts)
-                        opts_[current_block][opt.first] = opt.second;
-                    block_opts.clear();
-                    current_block = "global";
-                }
+                int last_dot = current_block.find_last_of(".");
+                if(tokens.at(0) == current_block.substr(last_dot+1))
+                    current_block.erase(last_dot);
                 else
                     cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << endl;
             }
@@ -57,7 +44,7 @@ void CfgManager::ParseConfigFile(const char* file)
             {
                 tokens.at(0).erase(tokens.at(0).begin());
                 tokens.at(0).erase(--tokens.at(0).end());
-                current_block = tokens.at(0);
+                current_block += "."+tokens.at(0);
             }
         }
         //---import cfg
@@ -72,40 +59,93 @@ void CfgManager::ParseConfigFile(const char* file)
         {
             string key=tokens.at(0);
             tokens.erase(tokens.begin());
-            block_opts[key] = tokens;
+            opts_[current_block+"."+key] = tokens;
         }
     }
     cfgFile.close();
+
+    //---set automatic info
+    char hostname[100];
+    gethostname(hostname, 100);
+    username_ = string(getlogin())+"@"+hostname;
+    time_t rawtime;
+    time(&rawtime);
+    struct tm* t = localtime(&rawtime);
+    timestamp_ = to_string(t->tm_mday)+"/"+to_string(t->tm_mon)+"/"+to_string(t->tm_year+1900)+"  "+
+        to_string(t->tm_hour)+":"+to_string(t->tm_min)+":"+to_string(t->tm_sec);
+
+    return;
 }
 
+//----------Print formatted version of the cfg--------------------------------------------
+//---option is the key to be print: default value meas "all keys"
 void CfgManager::Print(Option_t* option) const
 {
-    cout << *this << endl;
+    string argkey = option;
+    //---banner
+    string banner = "configuration was created by "+username_+" on "+timestamp_;
+    for(int i=0; i<banner.size(); ++i)
+        cout << "=";
+    cout << endl;
+    cout << banner << endl;
+    for(int i=0; i<banner.size(); ++i)
+        cout << "=";
+    cout << endl;
+    
+    //---options
+    string prev_block="";
+    for(auto& key : opts_)
+    {
+        string current_block = key.first.substr(5, key.first.find_last_of(".")-5);
+        if(argkey == "" || key.first.find(argkey) != string::npos)
+        {
+            if(current_block != prev_block)
+            {
+                if(prev_block != "")
+                    cout << "+----------" << endl;
+                cout << current_block << ":" << endl;
+                prev_block = current_block;
+            }
+            cout << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
+            for(auto& opt : key.second)
+                cout << opt << " " ;
+            cout << endl;
+        }
+    }
+    cout << "+----------" << endl;
+
+    return;
+}
+
+//----------Internal error check----------------------------------------------------------
+void CfgManager::Errors(string key, int opt)
+{
+    if(opts_.count(key) == 0)
+    {
+        cout << "> CfgManager --- ERROR: key '"<< key << "' not found" << endl;
+        exit(-1);
+    }
+    if(opt >= opts_[key].size())
+    {
+        cout << "> CfgManager --- ERROR: option '"<< key << "' as less then "
+             << opt << "values (" << opts_[key].size() << ")" << endl;
+        exit(-1);
+    }
+    return;
 }
 
 //**********operators*********************************************************************
 
-//template<typename T>
 ostream& operator<<(ostream& out, const CfgManager& obj)
 {
-    map<string, map<string, vector<string> > >::const_iterator itBlock;
     //---banner
-    out << "current configuration:" << endl;
+    out << "configuration: " << endl;
     //---options
-    for(itBlock=obj.opts_.begin(); itBlock!=obj.opts_.end(); ++itBlock)
+    for(auto& key : obj.opts_)
     {
-        out << setw(20) << itBlock->first;
-        map<string, vector<string> >::const_iterator itOpt;
-        for(itOpt=itBlock->second.begin(); itOpt!=itBlock->second.end(); ++itOpt)
-        {
-            for(int iOpt=0; iOpt<itOpt->second.size(); ++iOpt)
-            {
-                out << setw(itOpt->first.size()+3) << itOpt->first;
-                out << setw(itOpt->second.at(iOpt).size()+3) << itOpt->second.at(iOpt);
-                out << endl;
-            }
-        }
-        out << endl;
+        out << key.first.substr(5) << ":" << endl;
+        for(auto& opt : key.second)
+            out << "\t" << opt << endl;
     }
     return out;
 }

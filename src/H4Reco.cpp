@@ -32,27 +32,34 @@ int main(int argc, char* argv[])
     opts.ParseConfigFile(argv[1]);
     //cout << opts << endl;
     //---data opts
-    string path=opts.GetOpt<string>("global", "path2data");
-    string run=opts.GetOpt<string>("global", "run");
+    string path=opts.GetOpt<string>("global.path2data");
+    string run=opts.GetOpt<string>("global.run");
     if(argc > 2)
         run = argv[2];
-    int maxEvents = opts.GetOpt<int>("global", "maxEvents");
-    //---channels opts
-    int nCh = opts.GetOpt<int>("global", "nCh");
-    int nSamples = opts.GetOpt<int>("global", "nSamples");
-    float tUnit = opts.GetOpt<float>("global", "tUnit");
-    bool useTrigRef = opts.GetOpt<int>("global", "useTrigRef");
-    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global", "channelsNames");
+    int maxEvents = opts.GetOpt<int>("global.maxEvents");
+    //---channels setup
+    int nCh = opts.GetOpt<int>("global.nCh");
+    int nSamples = opts.GetOpt<int>("global.nSamples");
+    float tUnit = opts.GetOpt<float>("global.tUnit");
+    bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
+    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
+    map<string, WFClass> WFs;
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
-         timeOpts[channel] = opts.GetOpt<vector<float> >(channel, "timeOpts");
-
-    //---definitions---
-    int iEvent=1;
+    {        
+        WFs[channel]=WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit);
+        timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
+        if(opts.OptExist(channel+".templateFit"))
+        {
+            TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
+            WFs[channel].SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
+            templateFile->Close();
+        }
+    }
   
     //-----output setup-----
+    int iEvent=1;
     TFile* outROOT = TFile::Open("ntuples/"+TString(run)+".root", "RECREATE");
-    outROOT->cd();
     RecoTree outTree(nCh, nSamples, channelsNames, &iEvent);
     WFTree outWFTree(nCh, nSamples, &iEvent);
   
@@ -74,13 +81,13 @@ int main(int argc, char* argv[])
     //---process WFs---
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
     while(h4Tree.NextEvt() && (iEvent<maxEvents || maxEvents==-1))
-    {        
+    {
         //---setup output event 
         int outCh=0;
         bool badEvent=false;
         bool fillWFtree=false;
-        if(opts.GetOpt<int>("global", "fillWFtree"))
-            fillWFtree = iEvent % opts.GetOpt<int>("global", "WFtreePrescale") == 0;
+        if(opts.GetOpt<int>("global.fillWFtree"))
+            fillWFtree = iEvent % opts.GetOpt<int>("global.WFtreePrescale") == 0;
         
         //---read the hodoscopes                                                                                                            $
         map<int,std::map<int,bool> > hodoFiberOn;
@@ -108,10 +115,10 @@ int main(int argc, char* argv[])
         //---user channels
         for(auto& channel : channelsNames)
         {
-            //---read WFs
-            WFClass WF(opts.GetOpt<int>(channel, "polarity"), tUnit);
-            int digiGr = opts.GetOpt<int>(channel, "digiGroup");
-            int digiCh = opts.GetOpt<int>(channel, "digiChannel");
+            //---reset and read new WFs
+            WFs[channel].Reset();
+            int digiGr = opts.GetOpt<int>(channel+".digiGroup");
+            int digiCh = opts.GetOpt<int>(channel+".digiChannel");
             int offset = digiGr*9*nSamples + digiCh*nSamples;
             for(int iSample=offset; iSample<offset+nSamples; ++iSample)
             {
@@ -121,40 +128,44 @@ int main(int argc, char* argv[])
                     badEvent = true;
                     break;
                 }
-                WF.AddSample(h4Tree.digiSampleValue[iSample]);
+                WFs[channel].AddSample(h4Tree.digiSampleValue[iSample]);
             }
             //---skip everything if one channel has trigger the badEvent flag 
             if(badEvent)
                 break;
             //---compute reco variables
-            WF.SetBaselineWindow(opts.GetOpt<int>(channel, "baselineWin", 0), 
-                                 opts.GetOpt<int>(channel, "baselineWin", 1));
-            WF.SetSignalWindow(opts.GetOpt<int>(channel, "signalWin", 0)+timeRef, 
-                               opts.GetOpt<int>(channel, "signalWin", 1)+timeRef);
-            WF.SubtractBaseline();
-            outTree.amp_max[outCh] = WF.GetAmpMax();
-            outTree.fit_amp_max[outCh] = WF.GetInterpolatedAmpMax();            
-            outTree.time[outCh] = WF.GetTime(opts.GetOpt<string>(channel, "timeType"), timeOpts[channel]);
-            outTree.baseline[outCh] = WF.GetIntegral(opts.GetOpt<int>(channel, "baselineInt", 0), 
-                                                     opts.GetOpt<int>(channel, "baselineInt", 1));
-            outTree.charge_tot[outCh] = WF.GetModIntegral(opts.GetOpt<int>(channel, "baselineInt", 1), 
+            WFs[channel].SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
+                                 opts.GetOpt<int>(channel+".baselineWin", 1));
+            WFs[channel].SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
+                               opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
+            WFBaseline baselineInfo = WFs[channel].SubtractBaseline();
+            pair<float, float> timeInfo = WFs[channel].GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
+            outTree.b_charge[outCh] = WFs[channel].GetIntegral(opts.GetOpt<int>(channel+".baselineInt", 0), 
+                                                     opts.GetOpt<int>(channel+".baselineInt", 1));
+            outTree.b_slope[outCh] = baselineInfo.slope;
+            outTree.b_rms[outCh] = baselineInfo.rms;
+            outTree.time[outCh] = timeInfo.first;
+            outTree.time_chi2[outCh] = timeInfo.second;
+            outTree.maximum[outCh] = WFs[channel].GetAmpMax();
+            outTree.amp_max[outCh] = WFs[channel].GetInterpolatedAmpMax();            
+            outTree.charge_tot[outCh] = WFs[channel].GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
                                                           nSamples);
-            outTree.charge_sig[outCh] = WF.GetSignalIntegral(opts.GetOpt<int>(channel, "signalInt", 0), 
-                                                             opts.GetOpt<int>(channel, "signalInt", 1));
+            outTree.charge_sig[outCh] = WFs[channel].GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
+                                                             opts.GetOpt<int>(channel+".signalInt", 1));
             //---template fit (only specified channels)
             WFFitResults fitResults{-1, -1000, -1};
-            if(opts.GetOpt<bool>(channel, "templateFit"))
+            if(opts.OptExist(channel+".templateFit"))
             {
-                TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel, "templateFit", 1).c_str(), "READ");
-                WF.SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel, "templateFit", 1).c_str()),
-                               200, 700);
-                fitResults = WF.TemplateFit();
+                fitResults = WFs[channel].TemplateFit(120, 100);
+                outTree.fit_ampl[outCh] = fitResults.ampl;
+                outTree.fit_time[outCh] = fitResults.time;
+                outTree.fit_chi2[outCh] = fitResults.chi2;
             }
                 
             //---WFs---
             if(fillWFtree)
             {
-                vector<float>* analizedWF = WF.GetSamples();
+                vector<float>* analizedWF = WFs[channel].GetSamples();
                 for(int jSample=0; jSample<analizedWF->size(); ++jSample)
                 {
                     outWFTree.time_stamp = h4Tree.evtTime;
@@ -184,9 +195,10 @@ int main(int argc, char* argv[])
                 outWFTree.Fill();
         }
     }
-    
+
+    //---write output file -- trees + configuration
     outROOT->cd();
-    if(opts.GetOpt<int>("global", "fillWFtree"))
+    if(opts.GetOpt<int>("global.fillWFtree"))
     {
         outWFTree.Write();
         outTree.AddFriend();

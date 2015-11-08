@@ -20,6 +20,15 @@ using namespace std;
 
 #define MAX_INTERPOLATOR_POINTS 10000
 
+struct WFBaseline
+{
+    float baseline;
+    float rms;
+    float slope;
+    float k;
+    float chi2;
+};
+
 struct WFFitResults
 {
     double ampl;
@@ -41,25 +50,26 @@ public:
     inline float          GetBaseline() {return baseline_;}
     float                 GetAmpMax(int min=-1, int max=-1);
     float                 GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
-    float                 GetTime(string method, vector<float>& params); 
-    float                 GetTimeCF(float frac, int nFitSamples=5, int min=-1, int max=-1);
-    float                 GetTimeLE(float thr, int nmFitSamples=1, int npFitSamples=3, int min=-1, int max=-1);
-    float                 GetChi2(string type);
+    pair<float, float>    GetTime(string method, vector<float>& params); 
+    pair<float, float>    GetTimeCF(float frac, int nFitSamples=5, int min=-1, int max=-1);
+    pair<float, float>    GetTimeLE(float thr, int nmFitSamples=1, int npFitSamples=3, int min=-1, int max=-1);
     float                 GetIntegral(int min=-1, int max=-1);
     float                 GetSignalIntegral(int riseWin, int fallWin);
     float                 GetModIntegral(int min=-1, int max=-1);
-    float                 GetBaselineRMS();
     //---setters---
     void                  SetSignalWindow(int min, int max);
     void                  SetBaselineWindow(int min, int max);
-    void                  SetTemplate(TH1* templateWF=NULL, int lW=0, int hW=0);
+    void                  SetTemplate(TH1* templateWF=NULL);
     //---utils---
+    void                  Reset();
     void                  AddSample(float sample) {samples_.push_back(polarity_*sample);};
-    bool                  SubtractBaseline(int min=-1, int max=-1);
-    WFFitResults          TemplateFit();
+    WFBaseline            SubtractBaseline(int min=-1, int max=-1);
+    WFFitResults          TemplateFit(int lW=0, int hW=0);
 
 private:
     //---utils---
+    float                 BaselineRMS();
+    float                 LinearInterpolation(float& A, float& B, const int& min, const int& max);
     double                TemplateChi2(const double* par=NULL);
     
 private:

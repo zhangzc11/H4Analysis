@@ -1,6 +1,9 @@
 #ifndef __CFG_MANAGER__
 #define __CFG_MANAGER__
 
+#include <unistd.h>
+#include <time.h>
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <istream>
@@ -21,20 +24,20 @@ class CfgManager: public TObject
 public:
     //---ctors---
     CfgManager() {};
-    CfgManager(map<string, map<string, vector<string> > >* defaultCfg) {SetDefaultCfg(defaultCfg);};
+    CfgManager(map<string, vector<string> >* defaultCfg) {SetCfg(defaultCfg);};
     CfgManager(const char* file) {ParseConfigFile(file);};
     //---dtor---
     ~CfgManager() {};
 
     //---getters---
-    template<typename T> T GetOpt(string block, string key, int opt=0);
+    template<typename T> T GetOpt(string key, int opt=0);
 
     //---setters---
-    inline void            SetDefaultCfg(map<string, map<string, vector<string> > >* defaultCfg)
+    inline void            SetCfg(map<string, vector<string> >* defaultCfg)
         {opts_ = *defaultCfg;};
 
-    //---utils---
-    void                   Errors(string block, string key, int opt=0);
+    //---utils
+    bool                   OptExist(string key);
     inline void            ParseConfigFile(string* file) {ParseConfigFile(file->c_str());};
     void                   ParseConfigFile(const char* file);
     virtual void           Print(Option_t* option="") const;
@@ -43,7 +46,13 @@ public:
     friend ostream& operator<<(ostream& out, const CfgManager& obj);
 
 private:
-    map<string, map<string, vector<string> > >  opts_;
+    //---utils---
+    void                   Errors(string key, int opt=0);
+
+private:
+    map<string, vector<string> >  opts_;
+    string username_;
+    string timestamp_;
 
     //---ROOT dictionary
     ClassDef(CfgManager, 1)
