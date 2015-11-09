@@ -65,12 +65,21 @@ int main(int argc, char* argv[])
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
-    string ls_command = string("ls "+path+run+" | grep 'root' > tmp/"+run+".list");
+    string ls_command;
+    if(path.find("/eos/cms") != string::npos)
+        ls_command = string("gfal-ls root://eoscms/"+path+run+" | grep 'root' > tmp/"+run+".list");
+    else
+        ls_command = string("ls "+path+run+" | grep 'root' > tmp/"+run+".list");
     system(ls_command.c_str());
     ifstream waveList(string("tmp/"+run+".list").c_str(), ios::in);
     string file;
     while(waveList >> file)
-        inTree->AddFile((path+run+"/"+file).c_str());
+    {
+        if(path.find("/eos/cms") != string::npos)
+            inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
+        else
+            inTree->AddFile((path+run+"/"+file).c_str());
+    }
     H4Tree h4Tree(inTree);
 
     //-----setup hodo configuration
