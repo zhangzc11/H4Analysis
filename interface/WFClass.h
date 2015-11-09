@@ -54,8 +54,8 @@ public:
     pair<float, float>    GetTimeCF(float frac, int nFitSamples=5, int min=-1, int max=-1);
     pair<float, float>    GetTimeLE(float thr, int nmFitSamples=1, int npFitSamples=3, int min=-1, int max=-1);
     float                 GetIntegral(int min=-1, int max=-1);
-    float                 GetSignalIntegral(int riseWin, int fallWin);
     float                 GetModIntegral(int min=-1, int max=-1);
+    virtual float         GetSignalIntegral(int riseWin, int fallWin);
     //---setters---
     void                  SetSignalWindow(int min, int max);
     void                  SetBaselineWindow(int min, int max);
@@ -66,13 +66,13 @@ public:
     WFBaseline            SubtractBaseline(int min=-1, int max=-1);
     WFFitResults          TemplateFit(int lW=0, int hW=0);
 
-private:
+protected:
     //---utils---
     float                 BaselineRMS();
     float                 LinearInterpolation(float& A, float& B, const int& min, const int& max);
     double                TemplateChi2(const double* par=NULL);
     
-private:
+protected:
     vector<float> samples_;
     float         tUnit_;
     int           polarity_;
