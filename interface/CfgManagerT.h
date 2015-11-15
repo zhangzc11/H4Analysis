@@ -6,9 +6,7 @@
 template<typename T>
 T CfgManager::GetOpt(string key, int opt)
 {
-    key = "opts."+key;
-    Errors(key, opt);
-    
+    key = "opts."+key;    
     T opt_val;
     istringstream buffer(opts_[key][opt]);
     buffer >> opt_val;
@@ -16,6 +14,22 @@ T CfgManager::GetOpt(string key, int opt)
     return opt_val;
 }
 
+template<> bool CfgManager::GetOpt(string key, int opt)
+{
+    key = "opts."+key;
+    if(!OptExist(key))
+        return false;
+    else if(opts_[key][opt].size()==1)
+    {        
+        bool opt_val;
+        istringstream buffer(opts_[key][opt]);
+        buffer >> opt_val;
+
+        return opt_val;
+    }
+
+    return true;
+}   
 
 template<> vector<float> CfgManager::GetOpt(string key, int opt)
 {

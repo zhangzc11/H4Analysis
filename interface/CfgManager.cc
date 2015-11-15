@@ -3,10 +3,10 @@
 //**********utils*************************************************************************
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(string key)
+bool CfgManager::OptExist(string key, int opt)
 {
-    for(auto& opt : opts_)
-        if(opt.first.find(key) != string::npos)
+    for(auto& iopt : opts_)
+        if(iopt.first.find(key) != string::npos && iopt.second.size()>opt)
             return true;
 
     return false;

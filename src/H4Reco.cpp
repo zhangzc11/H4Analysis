@@ -14,6 +14,7 @@
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"
 #include "interface/WFClassNINO.h"
+#include "interface/WireChamber.h"
 #include "interface/HodoUtils.h"
 
 using namespace std;
@@ -39,7 +40,6 @@ int main(int argc, char* argv[])
         run = argv[2];
     int maxEvents = opts.GetOpt<int>("global.maxEvents");
     //---channels setup
-    int nCh = opts.GetOpt<int>("global.nCh");
     int nSamples = opts.GetOpt<int>("global.nSamples");
     float tUnit = opts.GetOpt<float>("global.tUnit");
     bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
@@ -48,12 +48,12 @@ int main(int argc, char* argv[])
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
     {
-        if(opts.OptExist(channel+".type") && opts.GetOpt<string>(channel+".type") == "NINO")
+        if(opts.GetOpt<bool>(channel+".type") && opts.GetOpt<string>(channel+".type") == "NINO")
             WFs[channel] = new WFClassNINO(opts.GetOpt<int>(channel+".polarity"), tUnit);
         else
             WFs[channel] = new WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit);
         timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
-        if(opts.OptExist(channel+".templateFit"))
+        if(opts.GetOpt<bool>(channel+".templateFit"))
         {
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
             WFs[channel]->SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
@@ -64,8 +64,9 @@ int main(int argc, char* argv[])
     //-----output setup-----
     int iEvent=1;
     TFile* outROOT = TFile::Open("ntuples/"+TString(run)+".root", "RECREATE");
-    RecoTree outTree(nCh, nSamples, channelsNames, &iEvent);
-    WFTree outWFTree(nCh, nSamples, &iEvent);
+    RecoTree outTree(channelsNames, nSamples, opts.GetOpt<bool>("global.H4hodo"),
+                     opts.GetOpt<int>("global.nWireChambers"), &iEvent);
+    WFTree outWFTree(channelsNames.size(), nSamples, &iEvent);
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -85,11 +86,18 @@ int main(int argc, char* argv[])
             inTree->AddFile((path+run+"/"+file).c_str());
     }
     H4Tree h4Tree(inTree);
+    WireChamber wires(&h4Tree,
+                      opts.GetOpt<int>("WireChamber.chXleft"),
+                      opts.GetOpt<int>("WireChamber.chXright"),
+                      opts.GetOpt<int>("WireChamber.chYup"),
+                      opts.GetOpt<int>("WireChamber.chYdown"));
 
-    //-----setup hodo configuration
+
+    //---setup H4hodo
     vector<int> hodoFiberOrderA;
     vector<int> hodoFiberOrderB;
-    FillHodoFiberOrder(hodoFiberOrderA,hodoFiberOrderB);
+    if(opts.GetOpt<bool>("global.H4hodo"))
+        FillHodoFiberOrder(hodoFiberOrderA,hodoFiberOrderB);
 
     //---process WFs---
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
@@ -101,16 +109,24 @@ int main(int argc, char* argv[])
         bool fillWFtree=false;
         if(opts.GetOpt<int>("global.fillWFtree"))
             fillWFtree = iEvent % opts.GetOpt<int>("global.WFtreePrescale") == 0;
-        
-        //---read the hodoscopes                                                                                                            $
-        map<int,std::map<int,bool> > hodoFiberOn;
-        map<int,float> beamXY_hodo12;
-        FillHodo(h4Tree, hodoFiberOn, hodoFiberOrderA, hodoFiberOrderB, beamXY_hodo12);
-        outTree.hodoX1 = beamXY_hodo12[0];
-        outTree.hodoY1 = beamXY_hodo12[1];
-        outTree.hodoX2 = beamXY_hodo12[2];
-        outTree.hodoY2 = beamXY_hodo12[3]; 
 
+        //---read the wire chamber
+        wires.Unpack();
+        outTree.wireX[0] = wires.GetX();
+        outTree.wireY[0] = wires.GetY();
+        
+        //---read the hodoscopes
+        if(opts.GetOpt<bool>("global.H4hodo"))
+        {
+            map<int,std::map<int,bool> > hodoFiberOn;
+            map<int,float> beamXY_hodo12;
+            FillHodo(h4Tree, hodoFiberOn, hodoFiberOrderA, hodoFiberOrderB, beamXY_hodo12);
+            outTree.hodoX1 = beamXY_hodo12[0];
+            outTree.hodoY1 = beamXY_hodo12[1];
+            outTree.hodoX2 = beamXY_hodo12[2];
+            outTree.hodoY2 = beamXY_hodo12[3]; 
+        }
+        
         //---read the digitizer
         //---set time reference from digitized trigger
         int timeRef=0;
@@ -132,7 +148,7 @@ int main(int argc, char* argv[])
             WFs[channel]->Reset();
             int digiGr = opts.GetOpt<int>(channel+".digiGroup");
             int digiCh = opts.GetOpt<int>(channel+".digiChannel");
-            int offset = digiGr*9*nSamples + digiCh*nSamples;
+            int offset = h4Tree.digiMap[make_pair(digiGr, digiCh)];
             for(int iSample=offset; iSample<offset+nSamples; ++iSample)
             {
                 //---H4DAQ bug: sometimes ADC value is out of bound.
@@ -167,14 +183,14 @@ int main(int argc, char* argv[])
                                                              opts.GetOpt<int>(channel+".signalInt", 1));
             //---template fit (only specified channels)
             WFFitResults fitResults{-1, -1000, -1};
-            if(opts.OptExist(channel+".templateFit"))
+            if(opts.GetOpt<bool>(channel+".templateFit"))
             {
                 fitResults = WFs[channel]->TemplateFit(120, 100);
                 outTree.fit_ampl[outCh] = fitResults.ampl;
                 outTree.fit_time[outCh] = fitResults.time;
                 outTree.fit_chi2[outCh] = fitResults.chi2;
             }
-                
+                 
             //---WFs---
             if(fillWFtree)
             {

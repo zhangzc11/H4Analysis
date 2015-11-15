@@ -31,17 +31,17 @@ public:
 
     //---getters---
     template<typename T> T GetOpt(string key, int opt=0);
-
+                    
     //---setters---
     inline void            SetCfg(map<string, vector<string> >* defaultCfg)
         {opts_ = *defaultCfg;};
 
     //---utils
-    bool                   OptExist(string key);
+    bool                   OptExist(string key, int opt=0);
     inline void            ParseConfigFile(string* file) {ParseConfigFile(file->c_str());};
     void                   ParseConfigFile(const char* file);
-    virtual void           Print(Option_t* option="") const;
-
+    virtual void           Print(Option_t* option="") const;   
+    
     //---operators---
     friend ostream& operator<<(ostream& out, const CfgManager& obj);
 

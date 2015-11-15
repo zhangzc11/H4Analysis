@@ -24,7 +24,7 @@ public:
 
     //---utils---
     void Fill() {tree_->Fill();};
-    void Write(string name="wf_tree") {tree_->BuildIndex("index"); tree_->Write(name.c_str());}
+    void Write(string name="wf_tree") {tree_->BuildIndex("index"); tree_->Write(name.c_str());};
 
     TTree* tree_; 
 

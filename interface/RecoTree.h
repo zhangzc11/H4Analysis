@@ -18,7 +18,7 @@ class RecoTree
 {
 public: 
     //---ctors---
-    RecoTree(unsigned int nCh, int nSamples, vector<string> names, int* idx);
+    RecoTree(vector<string> names, int nSamples, bool H4hodo, int nWireCh, int* idx);
     //---dtor---
     ~RecoTree();
 
@@ -49,15 +49,19 @@ public:
     float*       fit_ampl;
     float*       fit_time;
     float*       fit_chi2;
+    int          n_wchamber;
+    float*       wireX;
+    float*       wireY;
     float        hodoX1;
     float        hodoY1;
     float        hodoX2;
     float        hodoY2;
 };
 
-RecoTree::RecoTree(unsigned int nCh, int nSamples, vector<string> names, int* idx)
+RecoTree::RecoTree(vector<string> names, int nSamples, bool H4hodo, int nWireCh, int* idx)
 {
     tree_ = new TTree();
+    unsigned int nCh=names.size();
 
     index=idx;
     start_time=0;
@@ -106,15 +110,25 @@ RecoTree::RecoTree(unsigned int nCh, int nSamples, vector<string> names, int* id
         channels[iCh]=iCh;
         tree_->Branch(names[iCh].c_str(), &(channels[iCh]), (names[iCh]+"/I").c_str());
     }
+    //---wire chamber branches
+    n_wchamber = nWireCh;
+    wireX = new float[nWireCh];
+    wireY = new float[nWireCh];
+    tree_->Branch("n_wchamber", &n_wchamber, "n_wchamber/I");
+    tree_->Branch("wireX", wireX, "wireX[n_wchamber]/F");
+    tree_->Branch("wireY", wireY, "wireY[n_wchamber]/F");
     //---hodoscope branches
     hodoX1=0;
     hodoY1=0; 
     hodoX2=0;
-    hodoY2=0; 
-    tree_->Branch("hodoX1", &hodoX1, "hodoX1/F");
-    tree_->Branch("hodoY1", &hodoY1, "hodoY1/F");
-    tree_->Branch("hodoX2", &hodoX2, "hodoX2/F");
-    tree_->Branch("hodoY2", &hodoY2, "hodoY2/F");
+    hodoY2=0;
+    if(H4hodo)
+    {
+        tree_->Branch("hodoX1", &hodoX1, "hodoX1/F");
+        tree_->Branch("hodoY1", &hodoY1, "hodoY1/F");
+        tree_->Branch("hodoX2", &hodoX2, "hodoX2/F");
+        tree_->Branch("hodoY2", &hodoY2, "hodoY2/F");
+    }
 }
 
 RecoTree::~RecoTree()
