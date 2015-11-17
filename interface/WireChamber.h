@@ -13,7 +13,7 @@ class WireChamber
 {
 public:
     //---ctors---
-    WireChamber();
+    WireChamber(){};
     WireChamber(H4Tree* h4Tree, int chXl, int chXr, int chYu, int chYd);
     //---dtor---
     ~WireChamber(){};

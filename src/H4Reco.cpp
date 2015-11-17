@@ -86,11 +86,15 @@ int main(int argc, char* argv[])
             inTree->AddFile((path+run+"/"+file).c_str());
     }
     H4Tree h4Tree(inTree);
-    WireChamber wires(&h4Tree,
-                      opts.GetOpt<int>("WireChamber.chXleft"),
-                      opts.GetOpt<int>("WireChamber.chXright"),
-                      opts.GetOpt<int>("WireChamber.chYup"),
-                      opts.GetOpt<int>("WireChamber.chYdown"));
+    WireChamber wires;
+    if(opts.GetOpt<int>("global.nWireChambers") > 0)
+    {
+        wires = WireChamber(&h4Tree,
+                            opts.GetOpt<int>("WireChamber.chXleft"),
+                            opts.GetOpt<int>("WireChamber.chXright"),
+                            opts.GetOpt<int>("WireChamber.chYup"),
+                            opts.GetOpt<int>("WireChamber.chYdown"));
+    }
 
 
     //---setup H4hodo
@@ -111,9 +115,12 @@ int main(int argc, char* argv[])
             fillWFtree = iEvent % opts.GetOpt<int>("global.WFtreePrescale") == 0;
 
         //---read the wire chamber
-        wires.Unpack();
-        outTree.wireX[0] = wires.GetX();
-        outTree.wireY[0] = wires.GetY();
+        if(opts.GetOpt<int>("global.nWireChambers")>0)
+        {
+            wires.Unpack();
+            outTree.wireX[0] = wires.GetX();
+            outTree.wireY[0] = wires.GetY();
+        }
         
         //---read the hodoscopes
         if(opts.GetOpt<bool>("global.H4hodo"))

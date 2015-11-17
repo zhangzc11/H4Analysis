@@ -19,14 +19,14 @@ template<> bool CfgManager::GetOpt(string key, int opt)
     key = "opts."+key;
     if(!OptExist(key))
         return false;
-    else if(opts_[key][opt].size()==1)
-    {        
-        bool opt_val;
-        istringstream buffer(opts_[key][opt]);
-        buffer >> opt_val;
+    // else if(opts_[key][opt].size()==1)
+    // {
+    //     bool opt_val;
+    //     istringstream buffer(opts_[key][opt]);
+    //     buffer >> opt_val;
 
-        return opt_val;
-    }
+    //     return opt_val;
+    // }
 
     return true;
 }   

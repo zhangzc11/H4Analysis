@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++1y -fPIC
 SOFLAGS = -shared -O3
 INCLUDE = -I"./"
-LIB = -L"./lib/"
+LIB = -L"$(pwd)/lib/"
 
 ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
