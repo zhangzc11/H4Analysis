@@ -1,4 +1,4 @@
-* H4Analyis
+* H4Analysis
   - This repository aims to provide a fast reconstruction of data
     acquired with the H4DAQ mainly with the CAEN V1742 Digitizer
   - The main program is the H4Reco ntuples producer which can be easily
@@ -15,5 +15,43 @@
      + =reco_tree= : ntuples of reco variables (amplitude, time, baseline...) 
        computed from the signal of each channel for each acquired event.
      + =wf_tree= : stores the original waveform (if negative -WF is saved) of each channel.
-       A prescale is usually applied in order to reduce the size (tipically 1 out of 1000 
+       A prescale is usually applied in order to reduce the size (typically 1 out of 100 
        events is stored).
+
+** Reco information
+   *All variables are computed after the original baseline is subtracted (event by event)* 
+*** baseline:
+    + b_charge: sum of WF samples in a fixed (taken from cfg) window.
+    + b_slope: a pol1 =b_slope*x + K= is fit to the baseline.
+    + b_rms: RMS of the sample inside the baseline window.
+*** amplitude:
+    + maximum: max sample value.
+    + amp_max: interpolated amp max (pol2 fit, number of sample used is specified in the cfg).
+    + fit_ampl: amplitude extracted from a template fit.
+*** charge:
+    + charge_sig: sum of WF samples inside a window defined in the cfg
+    + charge_tot: sum of |WF samples| over the whole digitizer window.
+*** time:
+    + time: for normal WF is the time computed with a CFD method, in the process =amp_max= is used as 
+      amplitude information. For *NINO* this variables is computed with a leading edge method
+      (threshold set in the cfg, roughly ~40% of amp_max).
+    + time_chi2: chi2/ndf of the linear interpolation used to reconstruct the time (both CFD and LED).
+    + fit_time: time extracted from the template fit.
+    + git_chi2: chi2/ndf of the template fit.
+*** hodo:
+    + hodoX, hodoY: 4 branches (2 in X, 2 in Y).
+*** others:
+    + spill, event, run, start_time: copied from the raw tree.
+    + for each channel a name is specified in the cfg file, a branch with this name is created for each
+      of the channels. Each branch hold the index corresponding to the channel inside the tree, so for 
+      example in order to plot the amplitude of the reference MCP one should do:
+      =reco_tree->Draw("amp_max[MCP1]")=
+
+** Some examples:
+   + plot WF for APD2 only: 
+     =reco_tree->Draw("WF_val:WF_time","WF_ch==APD2")=
+   + plot amplitude map:
+     =reco_tree->Draw("fit_ampl[APD2]:hodoY1:hodoX1>>map(100,-10,10,100,-10,10)","","PROFCOLZ")
+   + time resolution:
+     =reco_tree->Draw("fit_time[APD2]-time[MCP1]","amp_max[MCP1]>100 && fit_ampl[APD2]>700")
+     
