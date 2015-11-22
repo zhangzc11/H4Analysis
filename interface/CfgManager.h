@@ -34,7 +34,7 @@ public:
                     
     //---setters---
     inline void            SetCfg(map<string, vector<string> >* defaultCfg)
-        {opts_ = *defaultCfg;};
+    {opts_ = *defaultCfg;};
 
     //---utils
     bool                   OptExist(string key, int opt=0);
@@ -56,6 +56,6 @@ private:
 
     //---ROOT dictionary
     ClassDef(CfgManager, 1)
-};
+        };
 
 #endif

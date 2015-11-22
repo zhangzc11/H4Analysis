@@ -27,7 +27,7 @@ float WFClass::GetAmpMax(int min, int max)
     for(int iSample=sWinMin_; iSample<sWinMax_; iSample++)
     {
         if(samples_.at(iSample) > samples_.at(maxSample_)) 
-	    maxSample_ = iSample;
+            maxSample_ = iSample;
     }    
     return samples_.at(maxSample_);
 }
@@ -46,7 +46,7 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
         SetSignalWindow(min, max);
     //---return the max if already computed
     else if(maxSample_ == -1) 
-      GetAmpMax(min, max); 
+        GetAmpMax(min, max); 
 
     //---fit the max
     TH1F h_max("h_max", "", nFitSamples, maxSample_-nFitSamples/2, maxSample_+nFitSamples/2);
@@ -203,10 +203,10 @@ float WFClass::GetModIntegral(int min, int max)
     float integral=0;
     for(int iSample=min; iSample<max; iSample++)
     {
-	if(samples_.at(iSample) < 0)
-	    integral -= samples_.at(iSample);
-	else
-	    integral += samples_.at(iSample);
+        if(samples_.at(iSample) < 0)
+            integral -= samples_.at(iSample);
+        else
+            integral += samples_.at(iSample);
     }
     return integral;
 }
@@ -248,8 +248,8 @@ void WFClass::SetTemplate(TH1* templateWF)
     vector<double> x, y;
     for(int iBin=1; iBin<=templateWF->GetNbinsX(); ++iBin)
     {
-	x.push_back(templateWF->GetBinCenter(iBin)-tempFitTime_);
-	y.push_back(templateWF->GetBinContent(iBin));
+        x.push_back(templateWF->GetBinCenter(iBin)-tempFitTime_);
+        y.push_back(templateWF->GetBinContent(iBin));
     }
     interpolator_->SetData(x, y);
 
@@ -373,7 +373,7 @@ float WFClass::LinearInterpolation(float& A, float& B, const int& min, const int
     for(int iSample=min; iSample<=max; ++iSample)
     {
         if(iSample<0 || iSample>=samples_.size()) 
-	    continue;
+            continue;
         xx = iSample*iSample*tUnit_*tUnit_;
         xy = iSample*tUnit_*samples_[iSample];
         Sx = Sx + (iSample)*tUnit_;
@@ -407,12 +407,12 @@ double WFClass::TemplateChi2(const double* par)
     double delta = 0;
     for(int iSample=fWinMin_; iSample<fWinMax_; ++iSample)
     {
-	if(iSample < 0 || iSample >= samples_.size())
+        if(iSample < 0 || iSample >= samples_.size())
         {
             //cout << ">>>WARNING: template fit out of samples rage (chi2 set to -1)" << endl;
-	    chi2 += 9999;
+            chi2 += 9999;
         }
-	else
+        else
         {
             //---fit: par[0]*ref_shape(t-par[1]) par[0]=amplitude, par[1]=DeltaT
             //---if not fitting return chi2 value of best fit
