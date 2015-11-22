@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
             WFFitResults fitResults{-1, -1000, -1};
             if(opts.GetOpt<bool>(channel+".templateFit"))
             {
-	      fitResults = WFs[channel]->TemplateFit(opts.GetOpt<int>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1));
+	      fitResults = WFs[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1), opts.GetOpt<int>(channel+".templateFit.fitWin", 2));
 	      outTree.fit_ampl[outCh] = fitResults.ampl;
 	      outTree.fit_time[outCh] = fitResults.time;
 	      outTree.fit_chi2[outCh] = fitResults.chi2;

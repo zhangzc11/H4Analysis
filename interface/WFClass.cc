@@ -308,15 +308,15 @@ WFBaseline WFClass::SubtractBaseline(int min, int max)
 }
 
 //----------template fit to the WF--------------------------------------------------------
-WFFitResults WFClass::TemplateFit(int lW, int hW)
+WFFitResults WFClass::TemplateFit(float offset, int lW, int hW)
 {
     if(tempFitAmp_ == -1)
     {
         //---set template fit window around maximum, [min, max)
         BaselineRMS();
         GetAmpMax();    
-        fWinMin_ = maxSample_ - lW;
-        fWinMax_ = maxSample_ + hW;
+        fWinMin_ = maxSample_ + int(offset/tUnit_) - lW;
+        fWinMax_ = maxSample_ + int(offset/tUnit_) + hW;
         //---setup minimization
         ROOT::Math::Functor chi2(this, &WFClass::TemplateChi2, 2);
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
