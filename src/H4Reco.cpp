@@ -32,16 +32,21 @@ int main(int argc, char* argv[])
     //---load options---
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
-    //cout << opts << endl;
+    cout << opts << endl;
     //---data opts
     string path=opts.GetOpt<string>("global.path2data");
     string run=opts.GetOpt<string>("global.run");
+
     if(argc > 2)
         run = argv[2];
+
+
     int maxEvents = opts.GetOpt<int>("global.maxEvents");
+
     //---channels setup
     int nSamples = opts.GetOpt<int>("global.nSamples");
     float tUnit = opts.GetOpt<float>("global.tUnit");
+
     bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
     vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
     map<string, WFClass*> WFs;
@@ -78,15 +83,26 @@ int main(int argc, char* argv[])
     system(ls_command.c_str());
     ifstream waveList(string("tmp/"+run+".list").c_str(), ios::in);
     string file;
-    while(waveList >> file)
+
+    int nFiles=0;
+    while(waveList >> file && (opts.GetOpt<int>("global.maxFiles")<0 || nFiles<opts.GetOpt<int>("global.maxFiles")) )
     {
         if(path.find("/eos/cms") != string::npos)
+	  {
+	    std::cout << "+++ Adding file " << ("root://eoscms/"+path+run+"/"+file).c_str() << std::endl;
             inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
+	  }
         else
+	  {
+	    std::cout << "+++ Adding file " << (path+run+"/"+file).c_str() << std::endl;
             inTree->AddFile((path+run+"/"+file).c_str());
+	  }
+	++nFiles;
     }
+
     H4Tree h4Tree(inTree);
     WireChamber wires;
+
     if(opts.GetOpt<int>("global.nWireChambers") > 0)
     {
         wires = WireChamber(&h4Tree,
@@ -183,7 +199,7 @@ int main(int argc, char* argv[])
             outTree.time[outCh] = timeInfo.first;
             outTree.time_chi2[outCh] = timeInfo.second;
             outTree.maximum[outCh] = WFs[channel]->GetAmpMax();
-            outTree.amp_max[outCh] = WFs[channel]->GetInterpolatedAmpMax();            
+            outTree.amp_max[outCh] = WFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
             outTree.charge_tot[outCh] = WFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
                                                           nSamples);
             outTree.charge_sig[outCh] = WFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
@@ -192,10 +208,10 @@ int main(int argc, char* argv[])
             WFFitResults fitResults{-1, -1000, -1};
             if(opts.GetOpt<bool>(channel+".templateFit"))
             {
-                fitResults = WFs[channel]->TemplateFit(120, 100);
-                outTree.fit_ampl[outCh] = fitResults.ampl;
-                outTree.fit_time[outCh] = fitResults.time;
-                outTree.fit_chi2[outCh] = fitResults.chi2;
+	      fitResults = WFs[channel]->TemplateFit(opts.GetOpt<int>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1));
+	      outTree.fit_ampl[outCh] = fitResults.ampl;
+	      outTree.fit_time[outCh] = fitResults.time;
+	      outTree.fit_chi2[outCh] = fitResults.chi2;
             }
                  
             //---WFs---
