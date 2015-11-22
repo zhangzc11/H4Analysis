@@ -45,15 +45,15 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
     if(min!=-1 && max!=-1)
         SetSignalWindow(min, max);
     //---return the max if already computed
-    else if(maxSample_ == -1)
-        GetAmpMax(min, max);
+    else if(maxSample_ == -1) 
+      GetAmpMax(min, max); 
 
     //---fit the max
     TH1F h_max("h_max", "", nFitSamples, maxSample_-nFitSamples/2, maxSample_+nFitSamples/2);
     TF1 f_max("f_max", "pol2", maxSample_-nFitSamples/2, maxSample_+nFitSamples/2);
 
     int bin=1;
-    for(int iSample=maxSample_-nFitSamples/2; iSample<=maxSample_+nFitSamples/2; ++iSample)
+    for(int iSample=maxSample_-(nFitSamples-1)/2; iSample<=maxSample_+(nFitSamples-1)/2; ++iSample)
     {
         h_max.SetBinContent(bin, samples_[iSample]);
         h_max.SetBinError(bin, BaselineRMS());
@@ -308,15 +308,15 @@ WFBaseline WFClass::SubtractBaseline(int min, int max)
 }
 
 //----------template fit to the WF--------------------------------------------------------
-WFFitResults WFClass::TemplateFit(int lW, int hW)
+WFFitResults WFClass::TemplateFit(float offset, int lW, int hW)
 {
     if(tempFitAmp_ == -1)
     {
         //---set template fit window around maximum, [min, max)
         BaselineRMS();
         GetAmpMax();    
-        fWinMin_ = maxSample_ - lW;
-        fWinMax_ = maxSample_ + hW;
+        fWinMin_ = maxSample_ + int(offset/tUnit_) - lW;
+        fWinMax_ = maxSample_ + int(offset/tUnit_) + hW;
         //---setup minimization
         ROOT::Math::Functor chi2(this, &WFClass::TemplateChi2, 2);
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
@@ -353,7 +353,8 @@ float WFClass::BaselineRMS()
         sum2 += samples_[iSample]*samples_[iSample];
     }
     
-    return bRMS_=sqrt(sum2/nSample - pow(sum/nSample, 2));
+    bRMS_=sqrt(sum2/nSample - pow(sum/nSample, 2));
+    return bRMS_;
 }
 
 //----------Linear interpolation util-----------------------------------------------------

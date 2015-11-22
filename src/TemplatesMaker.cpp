@@ -6,6 +6,8 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TProfile.h"
+#include "TH2F.h"
+#include "TROOT.h"
 
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
@@ -62,6 +64,38 @@ pair<TH1F, TH1F> DFT_cut(TProfile* inWave, string name, float fCut=800)
     return make_pair(outWave, outDFT);
 }
 
+TH1F* getMeanProfile(TH2F* waveForm)
+{
+  TH1F* prof=new TH1F(TString(waveForm->GetName())+"_prof",TString(waveForm->GetName())+"_prof",waveForm->GetNbinsX(),waveForm->GetXaxis()->GetXmin(),waveForm->GetXaxis()->GetXmax());
+  for (int ibin=1;ibin<waveForm->GetNbinsX()+1;++ibin)
+    {
+      TH1F* h=new TH1F(Form("%s_xbin_%d",waveForm->GetName(),ibin),Form("%s_xbin_%d",waveForm->GetName(),ibin),waveForm->GetNbinsY(),waveForm->GetYaxis()->GetXmin(),waveForm->GetYaxis()->GetXmax());
+      for (int ybin=1;ybin<waveForm->GetNbinsY()+1;++ybin)
+	{
+	  h->SetBinContent(ybin,waveForm->GetBinContent(ibin,ybin));
+	  h->SetBinError(ybin,waveForm->GetBinError(ibin,ybin));
+	}
+      float deltaMean=9999;
+      float deltaRMS=9999;
+      float oldMean=h->GetMean();
+      float oldRMS=h->GetRMS();
+      while (deltaMean>1E-4 || deltaRMS>1E-5)
+	{
+	  h->GetXaxis()->SetRangeUser(oldMean-3*oldRMS,oldMean+3*oldRMS);
+	  float newMean=h->GetMean();
+	  float newRMS=h->GetRMS();
+	  deltaMean=abs(newMean-oldMean);
+	  deltaRMS=abs(newRMS-oldRMS);
+	  oldMean=newMean;
+	  oldRMS=newRMS;
+	}
+      prof->SetBinContent(ibin,h->GetMean());
+      prof->SetBinError(ibin,h->GetMeanError());
+
+      delete h;
+    }
+  return prof;
+}
 //**********MAIN**************************************************************************
 int main(int argc, char* argv[])
 {
@@ -71,6 +105,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    gROOT->SetBatch(kTRUE);
     //---load options---
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
@@ -94,15 +129,16 @@ int main(int argc, char* argv[])
          timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
 
     //---definitions---
-    int iEvent=1;
+    int iEvent=0;
   
     //-----output setup-----
-    TFile* outROOT = TFile::Open("ntuples/Templates_"+TString(outSuffix)+".root", "RECREATE");
+    TString outF="ntuples/Templates_"+TString(outSuffix)+"_"+TString(run)+".root";
+    TFile* outROOT = TFile::Open(outF, "RECREATE");
     outROOT->cd();
-    map<string, TProfile*> templates;
+    map<string, TH2F*> templates;
     for(auto channel : channelsNames)
-        templates[channel] = new TProfile(channel.c_str(), channel.c_str(),
-                                          8000, -40, 160, -0.5, 1.1);
+        templates[channel] = new TH2F(channel.c_str(), channel.c_str(),
+				      16000, -40, 160, 1200, -0.1, 1.1);
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -114,19 +150,33 @@ int main(int argc, char* argv[])
     system(ls_command.c_str());
     ifstream waveList(string("tmp/"+run+".list").c_str(), ios::in);
     string file;
-    while(waveList >> file)
+    
+    int nFiles=0;
+    while(waveList >> file && (opts.GetOpt<int>("global.maxFiles")<0 || nFiles<opts.GetOpt<int>("global.maxFiles")) )
     {
+      
         if(path.find("/eos/cms") != string::npos)
+	  {
+	    std::cout << "+++ Adding file " << ("root://eoscms/"+path+run+"/"+file).c_str() << std::endl;
             inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
+	  }
         else
+	  {
+	    std::cout << "+++ Adding file " << (path+run+"/"+file).c_str() << std::endl;
             inTree->AddFile((path+run+"/"+file).c_str());
+	  }
+	++nFiles;
+
     }
     H4Tree h4Tree(inTree);
 
     //---process WFs---
-    cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
+    long nentries=h4Tree.GetEntries();
+    cout << ">>> Processing H4DAQ run #" << run << " events #" << nentries << " <<<" << endl;
     while(h4Tree.NextEvt() && (iEvent<maxEvents || maxEvents==-1))
     {        
+        ++iEvent;
+	if (iEvent%1000==0) std::cout << "Processing event " << iEvent << "/" << nentries << std::endl;
         //---setup output event 
         int outCh=0;
         bool badEvent=false;
@@ -155,15 +205,16 @@ int main(int argc, char* argv[])
                              opts.GetOpt<int>(refChannel+".baselineWin", 1));
         WF.SetSignalWindow(opts.GetOpt<int>(refChannel+".signalWin", 0), 
                            opts.GetOpt<int>(refChannel+".signalWin", 1));
-        WF.SubtractBaseline();
+        WFBaseline refBaseline=WF.SubtractBaseline();
         refAmpl = WF.GetInterpolatedAmpMax();            
         refTime = WF.GetTime(opts.GetOpt<string>(refChannel+".timeType"), timeOpts[refChannel]).first;
         //---require reference channel to be good
         if(refTime/tUnit < opts.GetOpt<int>(refChannel+".signalWin", 0) ||
            refTime/tUnit > opts.GetOpt<int>(refChannel+".signalWin", 1) ||
-           refAmpl < opts.GetOpt<int>(refChannel+".amplitudeThreshold"))
+	   refBaseline.rms > opts.GetOpt<float>(refChannel+".noiseThreshold") ||
+	   refAmpl < opts.GetOpt<int>(refChannel+".amplitudeThreshold"))
             continue;
-        
+
         //---template channels
         for(auto& channel : channelsNames)
         {
@@ -191,29 +242,39 @@ int main(int argc, char* argv[])
                                  opts.GetOpt<int>(channel+".baselineWin", 1));
             WF.SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0), 
                                opts.GetOpt<int>(channel+".signalWin", 1));
-            WF.SubtractBaseline();
-            channelAmpl = WF.GetInterpolatedAmpMax();            
+            WFBaseline channelBaseline=WF.SubtractBaseline();
+	    channelAmpl = WF.GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
             channelTime = WF.GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]).first;
             //---skip bad events or events with no signal
             if(channelTime/tUnit > opts.GetOpt<int>(channel+".signalWin", 0) &&
                channelTime/tUnit < opts.GetOpt<int>(channel+".signalWin", 1) &&
-               channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold"))
+	       channelBaseline.rms < opts.GetOpt<float>(channel+".noiseThreshold") &&
+               channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold") &&
+               channelAmpl < 4000)
             {                
                 vector<float>* analizedWF = WF.GetSamples();
                 for(int iSample=0; iSample<analizedWF->size(); ++iSample)
-                    templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
+		  templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
             }
         }
     }   
 
-    //---clean templates with DFT analysis and store them
+
+    cout << ">>> Writing output " << outF << " <<<" << endl;    
+
     outROOT->cd();
+
     for(auto& channel : channelsNames)
     {
-        pair<TH1F, TH1F> dft = DFT_cut(templates[channel], channel, 800);
-        dft.first.Write();
-        dft.second.Write();
-        templates[channel]->Write();
+        // pair<TH1F, TH1F> dft = DFT_cut(templates[channel], channel, 800);
+        // dft.first.Write();
+        // dft.second.Write();
+      if (templates[channel]->GetEntries()>1024*100)
+	{
+	  TH1F* prof=getMeanProfile(templates[channel]);
+	  templates[channel]->Write();
+	  prof->Write();
+	}
     }
     opts.Write("cfg");
     outROOT->Close();
