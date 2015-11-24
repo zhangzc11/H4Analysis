@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
     vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
     map<string, WFClass*> WFs;
     map<string, WFClass*> emulatedWFs;
+    map<string, WFClass*> cleanedWFs;
     map<string, TH1*> templates;
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
@@ -64,11 +65,13 @@ int main(int argc, char* argv[])
 	  {
             WFs[channel] = new WFClassNINO(opts.GetOpt<int>(channel+".polarity"), tUnit);
             emulatedWFs[channel] = new WFClassNINO(1, tUnit);
+            cleanedWFs[channel] = new WFClassNINO(1, tUnit);
 	  }
         else
 	  {
             WFs[channel] = new WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit);
             emulatedWFs[channel] = new WFClass(1, tUnit);
+            cleanedWFs[channel] = new WFClass(1, tUnit);
 	  }
         timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
         if(opts.GetOpt<bool>(channel+".templateFit"))
@@ -77,6 +80,7 @@ int main(int argc, char* argv[])
 	    TH1* wfTemplate=(TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str());
             WFs[channel]->SetTemplate(wfTemplate);
 	    emulatedWFs[channel]->SetTemplate(wfTemplate);
+	    cleanedWFs[channel]->SetTemplate(wfTemplate);
             templateFile->Close();
         }
     }
@@ -87,6 +91,7 @@ int main(int argc, char* argv[])
     RecoTree outTree(channelsNames, nSamples, opts.GetOpt<bool>("global.H4hodo"),
                      opts.GetOpt<int>("global.nWireChambers"), &iEvent);
     WFTree outWFTree(channelsNames.size(), nSamples, &iEvent);
+    WFTree outCleanedWFTree(channelsNames.size(), nSamples, &iEvent,"_cleaned");
     ToysTree outToysTree(channelsNames.size(), &iEvent);
   
     //-----input setup-----
@@ -259,7 +264,7 @@ int main(int argc, char* argv[])
 		  outToysTree.toy_fit_time[outCh] = toy_fitResults.time;
 		  outToysTree.toy_fit_chi2[outCh] = toy_fitResults.chi2;
 		}
-	      
+
             }
          
 	    if (fillToys)
@@ -276,6 +281,22 @@ int main(int argc, char* argv[])
                     outWFTree.WF_val[jSample+outCh*nSamples] = analizedWF->at(jSample);
                 }
             }
+
+	    cleanedWFs[channel]->Reset();
+	    WFs[channel]->FFT(*(cleanedWFs[channel]),2,48); 
+
+            if(fillWFtree)
+            {
+                vector<float>* analizedWF = cleanedWFs[channel]->GetSamples();
+                for(int jSample=0; jSample<analizedWF->size(); ++jSample)
+                {
+                    outCleanedWFTree.time_stamp = h4Tree.evtTime;
+                    outCleanedWFTree.WF_ch[jSample+outCh*nSamples] = outCh;
+                    outCleanedWFTree.WF_time[jSample+outCh*nSamples] = jSample*tUnit;
+                    outCleanedWFTree.WF_val[jSample+outCh*nSamples] = analizedWF->at(jSample);
+                }
+            }
+
             //---increase output tree channel counter
             ++outCh;
         }
@@ -294,7 +315,10 @@ int main(int argc, char* argv[])
             outTree.Fill();
             //---WFs
             if(fillWFtree)
+	      {
                 outWFTree.Fill();
+		outCleanedWFTree.Fill();
+	      }
 	    if(fillToys)
 	      outToysTree.Fill();
         }
@@ -302,11 +326,15 @@ int main(int argc, char* argv[])
 
     //---write output file -- trees + configuration
     outROOT->cd();
+
     if(opts.GetOpt<int>("global.fillWFtree"))
     {
         outWFTree.Write();
         outTree.AddFriend();
+        outCleanedWFTree.Write("wf_cleaned_tree");
+        outTree.AddFriend("wf_cleaned_tree");
     }
+
     if(fillToys)
     {
       outToysTree.Write();
