@@ -1,5 +1,7 @@
 #include "../interface/WFClass.h"
 
+#include "TRandom3.h"
+
 //**********Constructors******************************************************************
 WFClass::WFClass(int polarity, float tUnit):
     polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
@@ -240,7 +242,7 @@ void WFClass::SetTemplate(TH1* templateWF)
     //---reset template fit variables
     if(interpolator_)
         delete interpolator_;
-    interpolator_ = new ROOT::Math::Interpolator(MAX_INTERPOLATOR_POINTS, ROOT::Math::Interpolation::kCSPLINE);
+    interpolator_ = new ROOT::Math::Interpolator(0, ROOT::Math::Interpolation::kCSPLINE);
     tempFitTime_ = templateWF->GetBinCenter(templateWF->GetMaximumBin());
     tempFitAmp_ = -1;
     
@@ -338,6 +340,26 @@ WFFitResults WFClass::TemplateFit(float offset, int lW, int hW)
     return WFFitResults{tempFitAmp_, tempFitTime_, TemplateChi2()/(fWinMax_-fWinMin_-2)};
 }
 
+void WFClass::EmulatedWF(WFClass& wf,float rms, float amplitude, float time)
+{
+  TRandom3 rnd(0);
+
+  wf.Reset();
+
+  if (tempFitTime_ == -1)
+    {
+      std::cout << "ERROR: no TEMPLATE for this WF" << std::endl;
+      return;
+    }
+
+  for (int i=0; i<samples_.size();++i)
+    {
+      float emulatedSample=amplitude*interpolator_->Eval(i*tUnit_-tempFitTime_-(time-tempFitTime_));
+      emulatedSample+=rnd.Gaus(0,rms);
+      wf.AddSample(emulatedSample);
+    }
+}
+
 //----------compute baseline RMS (noise)--------------------------------------------------
 float WFClass::BaselineRMS()
 {
@@ -425,4 +447,11 @@ double WFClass::TemplateChi2(const double* par)
     }
 
     return chi2;
+}
+
+void WFClass::Print()
+{
+  std::cout << "+++ DUMP WF +++" << std::endl;
+  for (int i=0; i<samples_.size(); ++i)
+    std::cout << "SAMPLE " << i << ": " << samples_[i] << std::endl;
 }

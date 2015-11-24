@@ -6,12 +6,14 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1F.h"
 
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
 #include "interface/H4Tree.h"
 #include "interface/RecoTree.h"
 #include "interface/WFTree.h"
+#include "interface/ToysTree.h"
 #include "interface/WFClass.h"
 #include "interface/WFClassNINO.h"
 #include "interface/WireChamber.h"
@@ -48,20 +50,33 @@ int main(int argc, char* argv[])
     float tUnit = opts.GetOpt<float>("global.tUnit");
 
     bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
+
+    bool fillToys = opts.GetOpt<int>("global.fillToys");
+
     vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
     map<string, WFClass*> WFs;
+    map<string, WFClass*> emulatedWFs;
+    map<string, TH1*> templates;
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
     {
         if(opts.GetOpt<bool>(channel+".type") && opts.GetOpt<string>(channel+".type") == "NINO")
+	  {
             WFs[channel] = new WFClassNINO(opts.GetOpt<int>(channel+".polarity"), tUnit);
+            emulatedWFs[channel] = new WFClassNINO(1, tUnit);
+	  }
         else
+	  {
             WFs[channel] = new WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit);
+            emulatedWFs[channel] = new WFClass(1, tUnit);
+	  }
         timeOpts[channel] = opts.GetOpt<vector<float> >(channel+".timeOpts");
         if(opts.GetOpt<bool>(channel+".templateFit"))
         {
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
-            WFs[channel]->SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
+	    TH1* wfTemplate=(TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str());
+            WFs[channel]->SetTemplate(wfTemplate);
+	    emulatedWFs[channel]->SetTemplate(wfTemplate);
             templateFile->Close();
         }
     }
@@ -72,6 +87,7 @@ int main(int argc, char* argv[])
     RecoTree outTree(channelsNames, nSamples, opts.GetOpt<bool>("global.H4hodo"),
                      opts.GetOpt<int>("global.nWireChambers"), &iEvent);
     WFTree outWFTree(channelsNames.size(), nSamples, &iEvent);
+    ToysTree outToysTree(channelsNames.size(), &iEvent);
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -212,8 +228,42 @@ int main(int argc, char* argv[])
 	      outTree.fit_ampl[outCh] = fitResults.ampl;
 	      outTree.fit_time[outCh] = fitResults.time;
 	      outTree.fit_chi2[outCh] = fitResults.chi2;
+
+	      //Throw toys
+	      if (fillToys)
+		{
+		  emulatedWFs[channel]->Reset();
+		  WFs[channel]->EmulatedWF(*(emulatedWFs[channel]), baselineInfo.rms, fitResults.ampl, fitResults.time);
+		  emulatedWFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
+							  opts.GetOpt<int>(channel+".baselineWin", 1));
+		  emulatedWFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
+							opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
+		  WFBaseline baselineInfo = emulatedWFs[channel]->SubtractBaseline();
+		  double toy_maximum=emulatedWFs[channel]->GetAmpMax();
+		  double toy_amp_max=emulatedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));	       
+		  pair<float, float> toy_timeInfo = emulatedWFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
+		  outToysTree.toy_time[outCh] = toy_timeInfo.first;
+		  outToysTree.toy_time_chi2[outCh] = toy_timeInfo.second;
+		  outToysTree.toy_maximum[outCh] = toy_maximum;
+		  outToysTree.toy_amp_max[outCh] = toy_amp_max;
+		  
+		  outToysTree.toy_charge_tot[outCh] = emulatedWFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
+											   nSamples);
+		  outToysTree.toy_charge_sig[outCh] = emulatedWFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
+											      opts.GetOpt<int>(channel+".signalInt", 1));
+		  
+		  WFFitResults toy_fitResults{-1, -1000, -1};
+		  toy_fitResults = emulatedWFs[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1), opts.GetOpt<int>(channel+".templateFit.fitWin", 2));
+		  
+		  outToysTree.toy_fit_ampl[outCh] = toy_fitResults.ampl;
+		  outToysTree.toy_fit_time[outCh] = toy_fitResults.time;
+		  outToysTree.toy_fit_chi2[outCh] = toy_fitResults.chi2;
+		}
+	      
             }
-                 
+         
+	    if (fillToys)
+	      outToysTree.time_stamp = h4Tree.evtTime;        
             //---WFs---
             if(fillWFtree)
             {
@@ -245,6 +295,8 @@ int main(int argc, char* argv[])
             //---WFs
             if(fillWFtree)
                 outWFTree.Fill();
+	    if(fillToys)
+	      outToysTree.Fill();
         }
     }
 
@@ -255,6 +307,12 @@ int main(int argc, char* argv[])
         outWFTree.Write();
         outTree.AddFriend();
     }
+    if(fillToys)
+    {
+      outToysTree.Write();
+      outTree.AddFriend("toys_tree");
+    }
+
     outTree.Write();
     opts.Write("cfg");
     outROOT->Close();

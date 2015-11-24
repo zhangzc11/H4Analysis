@@ -65,7 +65,8 @@ public:
     void                  AddSample(float sample) {samples_.push_back(polarity_*sample);};
     WFBaseline            SubtractBaseline(int min=-1, int max=-1);
     WFFitResults          TemplateFit(float offset=0., int lW=0, int hW=0);
-
+    void                  EmulatedWF(WFClass& wf, float rms, float amplitude, float time);
+    void                  Print();
 protected:
     //---utils---
     float                 BaselineRMS();
