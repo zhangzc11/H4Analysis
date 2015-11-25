@@ -13,7 +13,7 @@
 #include "interface/H4Tree.h"
 #include "interface/RecoTree.h"
 #include "interface/WFTree.h"
-#include "interface/ToysTree.h"
+#include "interface/WFRecoTree.h"
 #include "interface/WFClass.h"
 #include "interface/WFClassNINO.h"
 #include "interface/WireChamber.h"
@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
     bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
 
     bool fillToys = opts.GetOpt<int>("global.fillToys");
+    bool FFTCleanWF = opts.GetOpt<int>("global.FFTCleanWF");
 
     vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
     map<string, WFClass*> WFs;
@@ -92,7 +93,8 @@ int main(int argc, char* argv[])
                      opts.GetOpt<int>("global.nWireChambers"), &iEvent);
     WFTree outWFTree(channelsNames.size(), nSamples, &iEvent);
     WFTree outCleanedWFTree(channelsNames.size(), nSamples, &iEvent,"_cleaned");
-    ToysTree outToysTree(channelsNames.size(), &iEvent);
+    WFRecoTree outToysTree(channelsNames.size(), &iEvent,"toy_");
+    WFRecoTree outCleanedWFRecoTree(channelsNames.size(), &iEvent,"cleaned_");
   
     //-----input setup-----
     TChain* inTree = new TChain("H4tree");
@@ -234,7 +236,7 @@ int main(int argc, char* argv[])
 	      outTree.fit_time[outCh] = fitResults.time;
 	      outTree.fit_chi2[outCh] = fitResults.chi2;
 
-	      //Throw toys
+	      // --- Throw toys
 	      if (fillToys)
 		{
 		  emulatedWFs[channel]->Reset();
@@ -247,29 +249,62 @@ int main(int argc, char* argv[])
 		  double toy_maximum=emulatedWFs[channel]->GetAmpMax();
 		  double toy_amp_max=emulatedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));	       
 		  pair<float, float> toy_timeInfo = emulatedWFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
-		  outToysTree.toy_time[outCh] = toy_timeInfo.first;
-		  outToysTree.toy_time_chi2[outCh] = toy_timeInfo.second;
-		  outToysTree.toy_maximum[outCh] = toy_maximum;
-		  outToysTree.toy_amp_max[outCh] = toy_amp_max;
+		  outToysTree.time[outCh] = toy_timeInfo.first;
+		  outToysTree.time_chi2[outCh] = toy_timeInfo.second;
+		  outToysTree.maximum[outCh] = toy_maximum;
+		  outToysTree.amp_max[outCh] = toy_amp_max;
 		  
-		  outToysTree.toy_charge_tot[outCh] = emulatedWFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
+		  outToysTree.charge_tot[outCh] = emulatedWFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
 											   nSamples);
-		  outToysTree.toy_charge_sig[outCh] = emulatedWFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
+		  outToysTree.charge_sig[outCh] = emulatedWFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
 											      opts.GetOpt<int>(channel+".signalInt", 1));
 		  
 		  WFFitResults toy_fitResults{-1, -1000, -1};
 		  toy_fitResults = emulatedWFs[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1), opts.GetOpt<int>(channel+".templateFit.fitWin", 2));
 		  
-		  outToysTree.toy_fit_ampl[outCh] = toy_fitResults.ampl;
-		  outToysTree.toy_fit_time[outCh] = toy_fitResults.time;
-		  outToysTree.toy_fit_chi2[outCh] = toy_fitResults.chi2;
+		  outToysTree.fit_ampl[outCh] = toy_fitResults.ampl;
+		  outToysTree.fit_time[outCh] = toy_fitResults.time;
+		  outToysTree.fit_chi2[outCh] = toy_fitResults.chi2;
 		}
 
             }
          
 	    if (fillToys)
 	      outToysTree.time_stamp = h4Tree.evtTime;        
-            //---WFs---
+
+	    // ---- Cleaned (FFT) WF -----
+	    if (FFTCleanWF)
+	      {
+		cleanedWFs[channel]->Reset();
+		WFs[channel]->FFT(*(cleanedWFs[channel]),opts.GetOpt<int>(channel+".FFTCuts", 0),opts.GetOpt<int>(channel+".FFTCuts", 1)); 
+		cleanedWFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
+						       opts.GetOpt<int>(channel+".baselineWin", 1));
+		cleanedWFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
+						     opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
+		double cleaned_maximum=cleanedWFs[channel]->GetAmpMax();
+		double cleaned_amp_max=cleanedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));	       
+		pair<float, float> cleaned_timeInfo = cleanedWFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
+		outCleanedWFRecoTree.time[outCh] = cleaned_timeInfo.first;
+		outCleanedWFRecoTree.time_chi2[outCh] = cleaned_timeInfo.second;
+		outCleanedWFRecoTree.maximum[outCh] = cleaned_maximum;
+		outCleanedWFRecoTree.amp_max[outCh] = cleaned_amp_max;
+		
+		outCleanedWFRecoTree.charge_tot[outCh] = cleanedWFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
+											     nSamples);
+		outCleanedWFRecoTree.charge_sig[outCh] = cleanedWFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
+												opts.GetOpt<int>(channel+".signalInt", 1));
+		
+		WFFitResults cleaned_fitResults{-1, -1000, -1};
+		if(opts.GetOpt<bool>(channel+".templateFit"))
+		  {
+		    cleaned_fitResults = cleanedWFs[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0), opts.GetOpt<int>(channel+".templateFit.fitWin", 1), opts.GetOpt<int>(channel+".templateFit.fitWin", 2));
+		    outCleanedWFRecoTree.fit_ampl[outCh] = cleaned_fitResults.ampl;
+		    outCleanedWFRecoTree.fit_time[outCh] = cleaned_fitResults.time;
+		    outCleanedWFRecoTree.fit_chi2[outCh] = cleaned_fitResults.chi2;
+		  }
+	      }
+  
+	    //---WFs---
             if(fillWFtree)
             {
                 vector<float>* analizedWF = WFs[channel]->GetSamples();
@@ -282,10 +317,8 @@ int main(int argc, char* argv[])
                 }
             }
 
-	    cleanedWFs[channel]->Reset();
-	    WFs[channel]->FFT(*(cleanedWFs[channel]),2,48); 
 
-            if(fillWFtree)
+            if(fillWFtree && FFTCleanWF)
             {
                 vector<float>* analizedWF = cleanedWFs[channel]->GetSamples();
                 for(int jSample=0; jSample<analizedWF->size(); ++jSample)
@@ -313,14 +346,20 @@ int main(int argc, char* argv[])
             outTree.spill = h4Tree.spillNumber;
             outTree.event = h4Tree.evtNumber;
             outTree.Fill();
+
+	    //---Alternative WFs
+	    if(fillToys)
+	      outToysTree.Fill();
+	    if (FFTCleanWF)
+	      outCleanedWFRecoTree.Fill();
+
             //---WFs
             if(fillWFtree)
 	      {
                 outWFTree.Fill();
-		outCleanedWFTree.Fill();
+		if (FFTCleanWF)
+		  outCleanedWFTree.Fill();
 	      }
-	    if(fillToys)
-	      outToysTree.Fill();
         }
     }
 
@@ -331,8 +370,11 @@ int main(int argc, char* argv[])
     {
         outWFTree.Write();
         outTree.AddFriend();
-        outCleanedWFTree.Write("wf_cleaned_tree");
-        outTree.AddFriend("wf_cleaned_tree");
+	if (FFTCleanWF)
+	  {
+	    outCleanedWFTree.Write("wf_cleaned_tree");
+	    outTree.AddFriend("wf_cleaned_tree");
+	  }
     }
 
     if(fillToys)
@@ -340,6 +382,12 @@ int main(int argc, char* argv[])
       outToysTree.Write();
       outTree.AddFriend("toys_tree");
     }
+
+    if (FFTCleanWF)
+      {
+	outCleanedWFRecoTree.Write("cleanedwf_reco_tree");
+	outTree.AddFriend("cleanedwf_reco_tree");
+      }
 
     outTree.Write();
     opts.Write("cfg");
