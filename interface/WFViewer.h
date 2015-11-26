@@ -51,7 +51,7 @@ public:
 
     //---setters---
     void         SetTemplate(TH1F* h_template);
-    void         SetTree(string tree_name="reco_tree");
+    void         SetTree(const char* reco_tree="reco_tree", const char* wf_tree="wf");
     void         SetTree(TTree* tree) {tree_ = tree;};
     void         SetChannelName(string name) {name_ = name;};
 
@@ -59,7 +59,8 @@ public:
     string       GetChannelName() {return name_;};
     
     //---utils---
-    virtual void Draw(unsigned int iEntry);
+    virtual void Draw(string ref, const char* cut="", Long64_t max_entries=std::numeric_limits<Long64_t>::max());
+    virtual void Draw(unsigned int iEntry, const char* wf_tree="wf");
 
 private:
     string            name_;

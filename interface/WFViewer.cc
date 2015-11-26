@@ -54,34 +54,93 @@ void WFViewer::SetTemplate(TH1F* h_template)
 }    
 
 //----------Set the RecoTree--------------------------------------------------------------
-void WFViewer::SetTree(string tree_name)
+void WFViewer::SetTree(const char* reco_tree, const char* wf_tree)
 {
-    if(!tree_ || tree_->GetName() != tree_name)
+    if(!tree_ || tree_->GetName() != reco_tree)
     {
         TFile* currentFile = gROOT->GetFile();
         if(currentFile)
-        {
-            tree_ = (TTree*)currentFile->Get(tree_name.c_str());
-            tree_->SetMarkerStyle(7);
-            if(*tree_->GetListOfFriends()->begin())
-            {
-                gStyle->SetOptStat("");
-                h_pull_.SetAxisRange(-1, 1, "Y");
-                h_pull_.SetFillColor(kBlack);
-                h_pull_.SetFillStyle(3244);
-                tree_->AddFriend((*tree_->GetListOfFriends()->begin())->GetName());
-            }
+        {            
+            tree_ = (TTree*)currentFile->Get(reco_tree);
+            h_pull_.SetAxisRange(-1, 1, "Y");
+            h_pull_.SetFillColor(kBlack);
+            h_pull_.SetFillStyle(3244);
+            tree_->AddFriend(wf_tree);
+            gStyle->SetOptStat("");
         }
     }
     if(!tree_)
-        cout << "ERROR SetTree(): TTree '" << tree_name << "' not found" << endl;
+        cout << "ERROR SetTree(): TTree '" << reco_tree << "' not found" << endl;
     
     return;
 }
 
 //**********Utils*************************************************************************
 //----------Draw template with parameters taken from fit----------------------------------
-void WFViewer::Draw(unsigned int iEntry)
+//----------all the events up to *max_entries*,
+//----------wf are shifted accordingly to the time of *ref* channel
+void WFViewer::Draw(string ref, const char* cut, Long64_t max_entries)
+{
+    //---if a tree hasn't been loaded yet try to get the default one
+    if(tree_->GetNbranches() == 0)
+        SetTree();
+    
+    //---fill interpolator data (only once)
+    if(f_template_)
+        f_template_->Delete();
+    InterpolatorFunc* interpolator_ = new InterpolatorFunc(MAX_INTERPOLATOR_POINTS,
+                                                           ROOT::Math::Interpolation::kCSPLINE,
+                                                           1., 0.);
+    float offset = h_template_.GetBinCenter(h_template_.GetMaximumBin());
+    vector<double> x, y;
+    for(int iBin=1; iBin<=h_template_.GetNbinsX(); ++iBin)
+    {
+        x.push_back(h_template_.GetBinCenter(iBin));
+        y.push_back(h_template_.GetBinContent(iBin));
+    }
+    interpolator_->SetData(x, y);
+    f_template_ = new TF1(("f_"+name_).c_str(), interpolator_, 0, 180, 0);
+    f_template_->SetNpx(10000);
+    f_template_->SetLineColor(kRed+1);
+
+    //---Draw event WF + fit result + residuals
+    TCanvas* cnv = new TCanvas();
+    TPad* p1 = new TPad("wf", "", 0.0, 0.4, 1.0, 1.0, 21);
+    TPad* p2 = new TPad("pull", "", 0.0, 0.0, 1.0, 0.4, 21);
+    p1->SetFillColor(kWhite);
+    p2->SetFillColor(kWhite);
+    p1->Draw();
+    p2->Draw();
+    p1->cd();
+    tree_->Draw(("WF_val/amp_max["+name_+"]:WF_time-time["+ref+"]>>h(1500,-100,200,1000,-0.1,1.1)").c_str(),
+                ("WF_ch=="+name_+"&&"+cut).c_str(), "", max_entries);
+    tree_->Draw(("WF_val/amp_max["+name_+"]:WF_time-time["+ref+"]>>prof(1500,-100,200,1000,-0.1,1.1)").c_str(),
+                ("WF_ch=="+name_+"&&"+cut).c_str(), "PROFgoff", max_entries);
+    f_template_->Draw("same");
+
+    p2->cd();
+    TH1F* h_tmp = (TH1F*)gDirectory->Get("prof");
+    TH1F* h_pull = new TH1F("h_pull", "", 1500, -100, 200);
+    h_pull->SetAxisRange(-1, 1, "Y");
+    for(int i=1; i<h_tmp->GetNbinsX(); ++i)
+    {
+        if(f_template_->Eval(h_tmp->GetBinCenter(i))!=0)
+            h_pull->SetBinContent(i, (h_tmp->GetBinContent(i)-f_template_->Eval(h_tmp->GetBinCenter(i)))/
+                                  f_template_->Eval(h_tmp->GetBinCenter(i)));
+        else
+        {
+            h_pull->SetBinContent(i, 0);
+            h_pull->SetBinError(i+1, 1);
+        }
+    }    
+    h_pull->Draw("E3");        
+
+    return;
+}    
+
+//----------Draw template with parameters taken from fit----------------------------------
+//----------only one selected event
+void WFViewer::Draw(unsigned int iEntry, const char* wf_tree)
 {
     //---if a tree hasn't been loaded yet try to get the default one
     if(tree_->GetNbranches() == 0)
@@ -136,6 +195,7 @@ void WFViewer::Draw(unsigned int iEntry)
     p1->Draw();
     p2->Draw();
     p1->cd();
+    tree_->SetMarkerStyle(7);
     tree_->Draw("WF_val:WF_time>>h(1024,0,204.8)", ("WF_ch=="+name_+"&&index=="+to_string(iEntry)).c_str());
     f_template_->Draw("same");
     p2->cd();
