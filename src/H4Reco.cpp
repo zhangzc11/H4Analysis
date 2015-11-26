@@ -14,6 +14,7 @@
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"
 #include "interface/WFClassNINO.h"
+#include "interface/WFViewer.h"
 #include "interface/WireChamber.h"
 #include "interface/HodoUtils.h"
 
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
     //---load options---
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
-    cout << opts << endl;
+    //cout << opts << endl;
     //---data opts
     string path=opts.GetOpt<string>("global.path2data");
     string run=opts.GetOpt<string>("global.run");
@@ -48,8 +49,9 @@ int main(int argc, char* argv[])
     float tUnit = opts.GetOpt<float>("global.tUnit");
 
     bool useTrigRef = opts.GetOpt<int>("global.useTrigRef");
-    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
+    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");    
     map<string, WFClass*> WFs;
+    map<string, WFViewer> WFViewers;
     map<string, vector<float> > timeOpts;
     for(auto& channel : channelsNames)
     {
@@ -62,12 +64,14 @@ int main(int argc, char* argv[])
         {
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
             WFs[channel]->SetTemplate((TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
+            WFViewers[channel]=WFViewer(channel,
+                                        (TH1F*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
             templateFile->Close();
         }
     }
   
     //-----output setup-----
-    int iEvent=1;
+    int iEvent=-1;
     TFile* outROOT = TFile::Open("ntuples/"+TString(run)+".root", "RECREATE");
     RecoTree outTree(channelsNames, nSamples, opts.GetOpt<bool>("global.H4hodo"),
                      opts.GetOpt<int>("global.nWireChambers"), &iEvent);
@@ -233,9 +237,9 @@ int main(int argc, char* argv[])
         //---fill the output trees if the event is good
         if(!badEvent)
         {
+            ++iEvent;
             if(iEvent % 1000 == 0)
                 cout << ">>>Processed good events: " << iEvent << "/" << h4Tree.GetEntries() << endl;
-            ++iEvent;            
             //---reco var
             outTree.time_stamp = h4Tree.evtTime;
             outTree.run = h4Tree.runNumber;
@@ -248,16 +252,23 @@ int main(int argc, char* argv[])
         }
     }
 
-    //---write output file -- trees + configuration
+    //---write output file 
     outROOT->cd();
+    //---trees
     if(opts.GetOpt<int>("global.fillWFtree"))
     {
         outWFTree.Write();
         outTree.AddFriend();
     }
     outTree.Write();
+    //---templates for re-fit
+    for(auto& viewer : WFViewers)
+        viewer.second.Write(viewer.first.c_str());
+    //---cfg
     opts.Write("cfg");
     outROOT->Close();
+
+    return 0;
 }
 
 #endif

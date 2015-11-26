@@ -56,6 +56,6 @@ private:
 
     //---ROOT dictionary
     ClassDef(CfgManager, 1)
-        };
+};
 
 #endif
