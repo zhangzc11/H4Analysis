@@ -18,26 +18,22 @@ class RecoTree
 {
 public: 
     //---ctors---
-    RecoTree(){};
-    RecoTree(vector<string> names, int nSamples, bool H4hodo, int nWireCh, int* idx);
+    RecoTree(int nCh, int* idx, string prefix="");
     //---dtor---
     ~RecoTree();
 
     //---utils---
     void Fill() {tree_->Fill();};
-    void Write(string name="reco_tree") {tree_->Write(name.c_str());}
-    void AddFriend(string friend_name="wf_tree") {tree_->AddFriend(friend_name.c_str());}
-
+    void Write(const char* name="reco_tree", const char* title="reco_tree")
+        {tree_->BuildIndex("index"); tree_->SetTitle(title); tree_->Write(name);};
+    void AddFriend(const char* friend_name="wf_tree = wf") {tree_->AddFriend(friend_name, "");};
+    
     TTree* tree_; 
+    string prefix_;
 
     int*         index;
-    uint64       start_time;
     uint64       time_stamp;
-    unsigned int run;
-    unsigned int spill;
-    unsigned int event;   
     unsigned int n_channels;
-    int*         channels;
     float*       b_charge;
     float*       b_slope;
     float*       b_rms;
@@ -50,13 +46,6 @@ public:
     float*       fit_ampl;
     float*       fit_time;
     float*       fit_chi2;
-    int          n_wchamber;
-    float*       wireX;
-    float*       wireY;
-    float        hodoX1;
-    float        hodoY1;
-    float        hodoX2;
-    float        hodoY2;
 };
 
 #endif

@@ -8,7 +8,7 @@ ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
 
 
-DEPS = interface/CfgManager.h interface/CfgManagerT.h interface/WFClass.h interface/WFViewer.h interface/RecoTree.h interface/WFTree.h interface/H4Tree.h interface/HodoUtils.h interface/WFClassNINO.h interface/WireChamber.h
+DEPS = interface/CfgManager.h interface/CfgManagerT.h interface/WFClass.h interface/WFViewer.h interface/InfoTree.h interface/RecoTree.h interface/WFTree.h interface/H4Tree.h interface/HodoUtils.h interface/WFClassNINO.h interface/WireChamber.h
 DEPS_OBJ = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o lib/RecoTree.o lib/HodoUtils.o lib/WireChamber.o lib/H4lib.so 
 DICT_OBJ = lib/CfgManager.o lib/WFViewer.o
 

@@ -33,7 +33,7 @@ WFViewer::WFViewer(TTree* tree):
 }
 
 WFViewer::WFViewer(string name, TH1F* h_template):
-    name_(name), channel_(0), h_pull_("h_pull_", "", 1024, 0, 204.8)
+    name_(name), channel_(0), h_pull_(("h_pull_"+name).c_str(), "", 1024, 0, 204.8)
 {
     h_template_ = *h_template;
     f_template_ = new TF1();
