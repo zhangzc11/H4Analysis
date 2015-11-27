@@ -276,13 +276,14 @@ int main(int argc, char* argv[])
 	    if (FFTCleanWF)
             {
 		cleanedWFs[channel]->Reset();
-		WFs[channel]->FFT(*(cleanedWFs[channel]),opts.GetOpt<int>(channel+".FFTCuts", 0),opts.GetOpt<int>(channel+".FFTCuts", 1)); 
+		WFs[channel]->FFT(*(cleanedWFs[channel]),opts.GetOpt<int>(channel+".FFTCuts", 0),
+                                  opts.GetOpt<int>(channel+".FFTCuts", 1)); 
 		cleanedWFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
 						       opts.GetOpt<int>(channel+".baselineWin", 1));
 		cleanedWFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
 						     opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
 		double cleaned_maximum=cleanedWFs[channel]->GetAmpMax();
-		double cleaned_amp_max=cleanedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));	       
+		double cleaned_amp_max=cleanedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
 		pair<float, float> cleaned_timeInfo = cleanedWFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
 		outCleanedRecoTree.time[outCh] = cleaned_timeInfo.first;
 		outCleanedRecoTree.time_chi2[outCh] = cleaned_timeInfo.second;
