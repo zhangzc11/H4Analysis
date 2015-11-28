@@ -12,19 +12,27 @@ DEPS = interface/CfgManager.h interface/CfgManagerT.h interface/WFClass.h interf
 DEPS_OBJ = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o lib/RecoTree.o lib/HodoUtils.o lib/WireChamber.o lib/H4lib.so 
 DICT_OBJ = lib/CfgManager.o lib/WFViewer.o
 
-lib/%.o: interface/%.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
+all: lib/PluginBase.o lib/DigitizerReco.o
 
-all: lib/LinkDef.cxx lib/H4lib.so bin/H4Reco bin/TemplatesMaker
+lib/PluginBase.o: interface/PluginBase.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $< 
 
-lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/LinkDef.h 
-	rootcling -f $@ -c $^
+lib/DigitizerReco.o: interface/DigitizerReco.h 
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE)
 
-lib/H4lib.so: lib/LinkDef.cxx $(DICT_OBJ)
-	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+# lib/%.o: interface/%.cc $(DEPS)
+# 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
-bin/%: src/%.cpp $(DEPS_OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+# all: lib/LinkDef.cxx lib/H4lib.so bin/H4Reco bin/TemplatesMaker
+
+# lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/LinkDef.h 
+# 	rootcling -f $@ -c $^
+
+# lib/H4lib.so: lib/LinkDef.cxx $(DICT_OBJ)
+# 	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+
+# bin/%: src/%.cpp $(DEPS_OBJ)
+# 	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
 clean:
 	rm -f tmp/*
