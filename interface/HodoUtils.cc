@@ -13,7 +13,7 @@ void FillHodo(const H4Tree& h4Tree, std::map<int,std::map<int,bool> >& hodoFiber
     for(unsigned int i = 0; i < h4Tree.nPatterns; ++i)
     {
         if(h4Tree.patternBoard[i] == 0x08020001 ||
-            h4Tree.patternBoard[i] == 0x08020002)
+           h4Tree.patternBoard[i] == 0x08020002)
         {
             int pos = -1; // here is where the real hodoscope mapping is done
       

@@ -31,7 +31,7 @@ float WFClass::GetAmpMax(int min, int max)
     for(int iSample=sWinMin_; iSample<sWinMax_; iSample++)
     {
         if(samples_.at(iSample) > samples_.at(maxSample_)) 
-	    maxSample_ = iSample;
+            maxSample_ = iSample;
     }    
     return samples_.at(maxSample_);
 }
@@ -50,7 +50,7 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
         SetSignalWindow(min, max);
     //---return the max if already computed
     else if(maxSample_ == -1) 
-      GetAmpMax(min, max); 
+        GetAmpMax(min, max); 
 
     //---fit the max
     TH1F h_max("h_max", "", nFitSamples, maxSample_-nFitSamples/2, maxSample_+nFitSamples/2);
@@ -207,10 +207,10 @@ float WFClass::GetModIntegral(int min, int max)
     float integral=0;
     for(int iSample=min; iSample<max; iSample++)
     {
-	if(samples_.at(iSample) < 0)
-	    integral -= samples_.at(iSample);
-	else
-	    integral += samples_.at(iSample);
+        if(samples_.at(iSample) < 0)
+            integral -= samples_.at(iSample);
+        else
+            integral += samples_.at(iSample);
     }
     return integral;
 }
@@ -252,8 +252,8 @@ void WFClass::SetTemplate(TH1* templateWF)
     vector<double> x, y;
     for(int iBin=1; iBin<=templateWF->GetNbinsX(); ++iBin)
     {
-	x.push_back(templateWF->GetBinCenter(iBin)-tempFitTime_);
-	y.push_back(templateWF->GetBinContent(iBin));
+        x.push_back(templateWF->GetBinCenter(iBin)-tempFitTime_);
+        y.push_back(templateWF->GetBinContent(iBin));
     }
     interpolator_->SetData(x, y);
 
@@ -344,74 +344,74 @@ WFFitResults WFClass::TemplateFit(float offset, int lW, int hW)
 
 void WFClass::EmulatedWF(WFClass& wf,float rms, float amplitude, float time)
 {
-  TRandom3 rnd(0);
+    TRandom3 rnd(0);
 
-  wf.Reset();
+    wf.Reset();
 
-  if (tempFitTime_ == -1)
+    if (tempFitTime_ == -1)
     {
-      std::cout << "ERROR: no TEMPLATE for this WF" << std::endl;
-      return;
+        std::cout << "ERROR: no TEMPLATE for this WF" << std::endl;
+        return;
     }
 
-  for (int i=0; i<samples_.size();++i)
+    for (int i=0; i<samples_.size();++i)
     {
-      float emulatedSample=amplitude*interpolator_->Eval(i*tUnit_-tempFitTime_-(time-tempFitTime_));
-      emulatedSample+=rnd.Gaus(0,rms);
-      wf.AddSample(emulatedSample);
+        float emulatedSample=amplitude*interpolator_->Eval(i*tUnit_-tempFitTime_-(time-tempFitTime_));
+        emulatedSample+=rnd.Gaus(0,rms);
+        wf.AddSample(emulatedSample);
     }
 }
 
 
 void WFClass::FFT(WFClass& wf, float tau, int cut)
 {
-  if (samples_.size() == 0)
+    if (samples_.size() == 0)
     {
-      std::cout << "ERROR: EMPTY WF" << std::endl;
-      return;
+        std::cout << "ERROR: EMPTY WF" << std::endl;
+        return;
     }
 
-  wf.Reset();
+    wf.Reset();
 
-  int n=samples_.size();
-  TVirtualFFT *vfft =TVirtualFFT::FFT(1,&n,"C2CFORWARD");
+    int n=samples_.size();
+    TVirtualFFT *vfft =TVirtualFFT::FFT(1,&n,"C2CFORWARD");
 
-  Double_t orig_re[n],orig_im[n];
-  for(int i=0;i<n;i++) 
+    Double_t orig_re[n],orig_im[n];
+    for(int i=0;i<n;i++) 
     {
-      orig_re[i]=samples_[i];
-      if(i>1000) orig_re[i]=orig_re[999];// DIGI CAENV1742 NOT USABLE
-      orig_im[i]=0;
+        orig_re[i]=samples_[i];
+        if(i>1000) orig_re[i]=orig_re[999];// DIGI CAENV1742 NOT USABLE
+        orig_im[i]=0;
     }
-  vfft->SetPointsComplex(orig_re,orig_im);
-  vfft->Transform();
-  Double_t re[n],im[n];
-  vfft->GetPointsComplex(re,im);
+    vfft->SetPointsComplex(orig_re,orig_im);
+    vfft->Transform();
+    Double_t re[n],im[n];
+    vfft->GetPointsComplex(re,im);
 
-  TVirtualFFT *vinvfft =TVirtualFFT::FFT(1,&n,"C2CBACKWARD M K");
-  Double_t cut_re[n],cut_im[n];
+    TVirtualFFT *vinvfft =TVirtualFFT::FFT(1,&n,"C2CBACKWARD M K");
+    Double_t cut_re[n],cut_im[n];
 
-  for(int i=0;i<n;i++) 
+    for(int i=0;i<n;i++) 
     {
-      if( i> cut-1 && i<n-cut) 
-	{
-	  int delta = TMath::Min(i-cut-1,n-cut-i); 
-	  double dump=TMath::Exp(-delta/tau);
-	  cut_im[i]=im[i]*dump;
-	  cut_re[i]=re[i]*dump;
-	  continue;
-	}
-      cut_re[i]= re[i];
-      cut_im[i]= im[i];
+        if( i> cut-1 && i<n-cut) 
+        {
+            int delta = TMath::Min(i-cut-1,n-cut-i); 
+            double dump=TMath::Exp(-delta/tau);
+            cut_im[i]=im[i]*dump;
+            cut_re[i]=re[i]*dump;
+            continue;
+        }
+        cut_re[i]= re[i];
+        cut_im[i]= im[i];
     }
 
-  vinvfft->SetPointsComplex(cut_re,cut_im);
-  vinvfft->Transform();
-  Double_t inv_re[n],inv_im[n];
-  vinvfft->GetPointsComplex(inv_re,inv_im);
+    vinvfft->SetPointsComplex(cut_re,cut_im);
+    vinvfft->Transform();
+    Double_t inv_re[n],inv_im[n];
+    vinvfft->GetPointsComplex(inv_re,inv_im);
 
-  for(int i=0;i<n ;i++)
-    wf.AddSample(inv_re[i]/n);
+    for(int i=0;i<n ;i++)
+        wf.AddSample(inv_re[i]/n);
 }
 
 //----------compute baseline RMS (noise)--------------------------------------------------
@@ -449,7 +449,7 @@ float WFClass::LinearInterpolation(float& A, float& B, const int& min, const int
     for(int iSample=min; iSample<=max; ++iSample)
     {
         if(iSample<0 || iSample>=samples_.size()) 
-	    continue;
+            continue;
         xx = iSample*iSample*tUnit_*tUnit_;
         xy = iSample*tUnit_*samples_[iSample];
         Sx = Sx + (iSample)*tUnit_;
@@ -483,12 +483,12 @@ double WFClass::TemplateChi2(const double* par)
     double delta = 0;
     for(int iSample=fWinMin_; iSample<fWinMax_; ++iSample)
     {
-	if(iSample < 0 || iSample >= samples_.size())
+        if(iSample < 0 || iSample >= samples_.size())
         {
             //cout << ">>>WARNING: template fit out of samples rage (chi2 set to -1)" << endl;
-	    chi2 += 9999;
+            chi2 += 9999;
         }
-	else
+        else
         {
             //---fit: par[0]*ref_shape(t-par[1]) par[0]=amplitude, par[1]=DeltaT
             //---if not fitting return chi2 value of best fit
@@ -505,7 +505,7 @@ double WFClass::TemplateChi2(const double* par)
 
 void WFClass::Print()
 {
-  std::cout << "+++ DUMP WF +++" << std::endl;
-  for (int i=0; i<samples_.size(); ++i)
-    std::cout << "SAMPLE " << i << ": " << samples_[i] << std::endl;
+    std::cout << "+++ DUMP WF +++" << std::endl;
+    for (int i=0; i<samples_.size(); ++i)
+        std::cout << "SAMPLE " << i << ": " << samples_[i] << std::endl;
 }

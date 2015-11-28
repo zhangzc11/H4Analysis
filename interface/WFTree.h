@@ -18,13 +18,14 @@ class WFTree
 {
 public: 
     //---ctors---
-  WFTree(int nCh, int nSamples, int* idx, TString suffix="");
+    WFTree(int nCh, int nSamples, int* idx, TString suffix="");
     //---dtor---
     ~WFTree();
 
     //---utils---
     void Fill() {tree_->Fill();};
-    void Write(string name="wf_tree") {tree_->BuildIndex("index"); tree_->Write(name.c_str());};
+    void Write(const char* name="wf_tree", const char* title="wf_tree")
+        {tree_->BuildIndex("index"); tree_->SetTitle(title); tree_->Write(name);};
 
     TTree* tree_; 
     TString suffix_;
