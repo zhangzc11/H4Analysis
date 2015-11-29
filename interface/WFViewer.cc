@@ -112,9 +112,9 @@ void WFViewer::Draw(string ref, const char* cut, Long64_t max_entries)
     p1->Draw();
     p2->Draw();
     p1->cd();
-    tree_->Draw(("WF_val/amp_max["+name_+"]:WF_time-time["+ref+"]>>h(1500,-100,200,1000,-0.1,1.1)").c_str(),
+    tree_->Draw(("WF_val/fit_ampl["+name_+"]:WF_time-time["+ref+"]>>h(1500,-100,200,1000,-0.1,1.1)").c_str(),
                 ("WF_ch=="+name_+"&&"+cut).c_str(), "", max_entries);
-    tree_->Draw(("WF_val/amp_max["+name_+"]:WF_time-time["+ref+"]>>prof(1500,-100,200,1000,-0.1,1.1)").c_str(),
+    tree_->Draw(("WF_val/fit_ampl["+name_+"]:WF_time-time["+ref+"]>>prof(1500,-100,200,-0.1,1.1)").c_str(),
                 ("WF_ch=="+name_+"&&"+cut).c_str(), "PROFgoff", max_entries);
     f_template_->Draw("same");
 

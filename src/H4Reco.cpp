@@ -2,6 +2,7 @@
 #define __MAIN__
 
 #include <string>
+#include <sstream>
 
 #include "TString.h"
 #include "TFile.h"
@@ -46,6 +47,21 @@ int main(int argc, char* argv[])
 
     int maxEvents = opts.GetOpt<int>("global.maxEvents");
 
+    //---setup run tag
+    ifstream runList(opts.GetOpt<string>("global.runList").c_str(), ios::in);
+    std::string line;
+    std::map<int, std::string> runTags;
+    while(std::getline(runList,line))
+    {
+      std::istringstream iss(line);
+      int run;
+      string tag;
+      if (!(iss >> run >> tag)) { break; }
+      runTags[run]=tag;
+    }
+    std::string tag = runTags[atoi(run.c_str())];
+    std::cout << ">>> RUN# " << run << " TAG " << tag << " <<<" <<std::endl;
+
     //---channels setup
     int nSamples = opts.GetOpt<int>("global.nSamples");
     float tUnit = opts.GetOpt<float>("global.tUnit");
@@ -78,7 +94,7 @@ int main(int argc, char* argv[])
         if(opts.GetOpt<bool>(channel+".templateFit"))
         {
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
-            TH1* wfTemplate=(TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str());
+            TH1* wfTemplate=(TH1*)templateFile->Get(Form("%s_%s_%s",channel.c_str(),tag.c_str(),opts.GetOpt<string>(channel+".templateFit.file", 1).c_str()));
             WFs[channel]->SetTemplate(wfTemplate);
 	    emulatedWFs[channel]->SetTemplate(wfTemplate);
 	    cleanedWFs[channel]->SetTemplate(wfTemplate);
@@ -135,6 +151,7 @@ int main(int argc, char* argv[])
                             opts.GetOpt<int>("WireChamber.chYup"),
                             opts.GetOpt<int>("WireChamber.chYdown"));
     }
+
 
     //---setup H4hodo
     vector<int> hodoFiberOrderA;
@@ -276,13 +293,14 @@ int main(int argc, char* argv[])
 	    if (FFTCleanWF)
             {
 		cleanedWFs[channel]->Reset();
-		WFs[channel]->FFT(*(cleanedWFs[channel]),opts.GetOpt<int>(channel+".FFTCuts", 0),opts.GetOpt<int>(channel+".FFTCuts", 1)); 
+		WFs[channel]->FFT(*(cleanedWFs[channel]),opts.GetOpt<int>(channel+".FFTCuts", 0),
+                                  opts.GetOpt<int>(channel+".FFTCuts", 1)); 
 		cleanedWFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
 						       opts.GetOpt<int>(channel+".baselineWin", 1));
 		cleanedWFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
 						     opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
 		double cleaned_maximum=cleanedWFs[channel]->GetAmpMax();
-		double cleaned_amp_max=cleanedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));	       
+		double cleaned_amp_max=cleanedWFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
 		pair<float, float> cleaned_timeInfo = cleanedWFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]);
 		outCleanedRecoTree.time[outCh] = cleaned_timeInfo.first;
 		outCleanedRecoTree.time_chi2[outCh] = cleaned_timeInfo.second;
@@ -359,9 +377,13 @@ int main(int argc, char* argv[])
             //---WFs
             if(fillWFtree)
             {
-                outWFTree.Fill();
+	      outWFTree.Fill();
+	      outWFTree.tree_->AutoSave("FlushBaskets");
 		if (FFTCleanWF)
+		  {
                     outCleanedWFTree.Fill();
+                    outCleanedWFTree.tree_->AutoSave("FlushBaskets");
+		  }
             }
         }
     }

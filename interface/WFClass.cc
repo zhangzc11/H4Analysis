@@ -365,7 +365,7 @@ void WFClass::EmulatedWF(WFClass& wf,float rms, float amplitude, float time)
 
 void WFClass::FFT(WFClass& wf, float tau, int cut)
 {
-    if (samples_.size() == 0)
+    if(samples_.size() == 0)
     {
         std::cout << "ERROR: EMPTY WF" << std::endl;
         return;
@@ -374,7 +374,7 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     wf.Reset();
 
     int n=samples_.size();
-    TVirtualFFT *vfft =TVirtualFFT::FFT(1,&n,"C2CFORWARD");
+    TVirtualFFT *vfft = TVirtualFFT::FFT(1,&n,"C2CFORWARD");
 
     Double_t orig_re[n],orig_im[n];
     for(int i=0;i<n;i++) 
@@ -388,7 +388,7 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
     Double_t re[n],im[n];
     vfft->GetPointsComplex(re,im);
 
-    TVirtualFFT *vinvfft =TVirtualFFT::FFT(1,&n,"C2CBACKWARD M K");
+    TVirtualFFT *vinvfft = TVirtualFFT::FFT(1,&n,"C2CBACKWARD M K");
     Double_t cut_re[n],cut_im[n];
 
     for(int i=0;i<n;i++) 
