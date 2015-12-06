@@ -1,6 +1,8 @@
 #ifndef __RECO_TREE__
 #define __RECO_TREE__
 
+#include <memory>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -18,34 +20,36 @@ class RecoTree
 {
 public: 
     //---ctors---
-    RecoTree(int nCh, int* idx, string prefix="");
+    RecoTree(){};
+    RecoTree(int* idx, TTree* tree=NULL, string prefix="");
     //---dtor---
     ~RecoTree();
 
     //---utils---
+    void Init(vector<string>& names);
     void Fill() {tree_->Fill();};
     void Write(const char* name="reco_tree", const char* title="reco_tree")
         {tree_->BuildIndex("index"); tree_->SetTitle(title); tree_->Write(name);};
-    void AddFriend(const char* friend_name="wf_tree = wf") {tree_->AddFriend(friend_name, "");};
     
-    TTree* tree_; 
-    string prefix_;
+    TTree*        tree_; 
+    string        prefix_;
 
-    int*         index;
-    uint64       time_stamp;
-    unsigned int n_channels;
-    float*       b_charge;
-    float*       b_slope;
-    float*       b_rms;
-    float*       time;
-    float*       time_chi2;
-    float*       maximum;
-    float*       amp_max;
-    float*       charge_tot;
-    float*       charge_sig;
-    float*       fit_ampl;
-    float*       fit_time;
-    float*       fit_chi2;
+    int*          index;
+    uint64        time_stamp;
+    unsigned int  n_channels;
+    float*        b_charge;
+    float*        b_slope;
+    float*        b_rms;
+    float*        time;
+    float*        time_chi2;
+    float*        maximum;
+    float*        amp_max;
+    float*        charge_tot;
+    float*        charge_sig;
+    float*        fit_ampl;
+    float*        fit_time;
+    float*        fit_chi2;
+    int*          channels;
 };
 
 #endif

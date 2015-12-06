@@ -8,33 +8,36 @@ ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
 
 
-DEPS = interface/CfgManager.h interface/CfgManagerT.h interface/WFClass.h interface/WFViewer.h interface/InfoTree.h interface/RecoTree.h interface/WFTree.h interface/H4Tree.h interface/HodoUtils.h interface/WFClassNINO.h interface/WireChamber.h
-DEPS_OBJ = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o lib/RecoTree.o lib/HodoUtils.o lib/WireChamber.o lib/H4lib.so 
-DICT_OBJ = lib/CfgManager.o lib/WFViewer.o
+DEPS = interface/CfgManager.h interface/CfgManagerT.h \
+	interface/WFClass.h interface/WFClassNINO.h interface/WFViewer.h \
+	interface/InfoTree.h interface/RecoTree.h interface/WFTree.h interface/H4Tree.h 
+DEPS_OBJS = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o \
+	lib/H4Tree.o lib/InfoTree.o lib/RecoTree.o lib/WFTree.o lib/H4Dict.so
+PLUG_DEPS = plugin/PluginBase.h plugin/DigitizerReco.h
+PLUG_OBJS = lib/plugin/PluginBase.o lib/plugin/DigitizerReco.o
+DICT_OBJS = lib/CfgManager.o lib/WFViewer.o
 
-all: lib/PluginBase.o lib/DigitizerReco.o
+MAIN = bin/H4Reco
 
-lib/PluginBase.o: interface/PluginBase.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $< 
+all: $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
 
-lib/DigitizerReco.o: interface/DigitizerReco.h 
-	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE)
+lib/%.o: src/%.cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
-# lib/%.o: interface/%.cc $(DEPS)
-# 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
+lib/plugin/%.o: plugin/%.cc $(PLUG_DEPS)
+	mkdir -p lib/plugin
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
-# all: lib/LinkDef.cxx lib/H4lib.so bin/H4Reco bin/TemplatesMaker
+lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/LinkDef.h 
+	rootcling -f $@ -c $^
 
-# lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/LinkDef.h 
-# 	rootcling -f $@ -c $^
+lib/H4Dict.so: lib/LinkDef.cxx $(DICT_OBJS)
+	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
-# lib/H4lib.so: lib/LinkDef.cxx $(DICT_OBJ)
-# 	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
-
-# bin/%: src/%.cpp $(DEPS_OBJ)
-# 	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+bin/%: main/%.cpp $(DEPS_OBJS) $(PLUG_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
 clean:
-	rm -f tmp/*
-	rm -f lib/*
-	rm -f bin/*
+	rm -fr tmp/*
+	rm -fr lib/*
+	rm -fr bin/*

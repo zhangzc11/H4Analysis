@@ -1,4 +1,4 @@
-#include "../interface/WFClassNINO.h"
+#include "interface/WFClassNINO.h"
 
 //**********Constructors******************************************************************
 

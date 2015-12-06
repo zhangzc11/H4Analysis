@@ -1,4 +1,5 @@
-#include "CfgManager.h"
+#include "interface/CfgManager.h"
+#include "interface/CfgManagerT.h"
 
 //**********utils*************************************************************************
 
@@ -122,12 +123,12 @@ void CfgManager::Errors(string key, int opt)
 {
     if(opts_.count(key) == 0)
     {
-        cout << "> CfgManager --- ERROR: key '"<< key << "' not found" << endl;
+        cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << endl;
         exit(-1);
     }
     if(opt >= opts_[key].size())
     {
-        cout << "> CfgManager --- ERROR: option '"<< key << "' as less then "
+        cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
              << opt << "values (" << opts_[key].size() << ")" << endl;
         exit(-1);
     }

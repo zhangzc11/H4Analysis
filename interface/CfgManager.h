@@ -30,7 +30,7 @@ public:
     ~CfgManager() {};
 
     //---getters---
-    template<typename T> T GetOpt(string key, int opt=0);
+    template<typename T=bool> T GetOpt(string key, int opt=0);
                     
     //---setters---
     inline void            SetCfg(map<string, vector<string> >* defaultCfg)
@@ -47,7 +47,7 @@ public:
 
 private:
     //---utils---
-    void                   Errors(string key, int opt=0);
+    void                          Errors(string key, int opt=0);
 
 private:
     map<string, vector<string> >  opts_;

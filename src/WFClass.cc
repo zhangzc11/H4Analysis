@@ -1,4 +1,4 @@
-#include "../interface/WFClass.h"
+#include "interface/WFClass.h"
 
 #include "TRandom3.h"
 #include "TVirtualFFT.h"

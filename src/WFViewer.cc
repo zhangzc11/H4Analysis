@@ -1,5 +1,5 @@
-#include "WFViewer.h"
-#include "RecoTree.h"
+#include "interface/WFViewer.h"
+#include "interface/RecoTree.h"
 
 #include "TStyle.h"
 #include "TLine.h"

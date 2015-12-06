@@ -36,7 +36,7 @@ struct WFFitResults
     double chi2;
 };      
 
-class WFClass 
+class WFClass : public TObject
 {
 public:
     //---ctors---

@@ -1,4 +1,4 @@
-#include "WireChamber.h"
+#include "interface/WireChamber.h"
 
 //----------constructor-------------------------------------------------------------------
 WireChamber::WireChamber(H4Tree* h4Tree, int chXl, int chXr, int chYu, int chYd):
