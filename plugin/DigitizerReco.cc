@@ -9,6 +9,12 @@ bool DigitizerReco::Begin(CfgManager& opts, int* index)
     tUnit_ = opts.GetOpt<float>(instanceName_+".tUnit");
 
     //---channels setup
+    string templateTag="";
+    if(opts.GetOpt<bool>(instanceName_+".templateTags"))
+        for(auto& tag : opts.GetOpt<vector<string> >(instanceName_+".templateTags"))
+            for(auto& run : opts.GetOpt<vector<string> >(tag+".runList"))
+                if(run == opts.GetOpt<string>("h4reco.run"))
+                    templateTag = tag;
     for(auto& channel : channelsNames_)
     {
         if(opts.GetOpt<bool>(channel+".type") && opts.GetOpt<string>(channel+".type") == "NINO")
@@ -16,9 +22,12 @@ bool DigitizerReco::Begin(CfgManager& opts, int* index)
         else
             WFs[channel] = new WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit_);
         if(opts.GetOpt<bool>(channel+".templateFit"))
-        {
+        {            
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
-            TH1* wfTemplate=(TH1*)templateFile->Get(opts.GetOpt<string>(channel+".templateFit.file", 1).c_str());
+            TH1* wfTemplate=(TH1*)templateFile->Get((opts.GetOpt<string>(channel+".templateFit.file", 1)+
+                                                     +"_"+templateTag).c_str());
+            cout << (opts.GetOpt<string>(channel+".templateFit.file", 1)+
+                     +"_"+templateTag).c_str() << endl;
             WFs[channel]->SetTemplate(wfTemplate);
             WFViewers[channel]=WFViewer(channel, (TH1F*)wfTemplate);
             RegisterSharedData(&WFViewers[channel], channel+"_view", true);

@@ -20,8 +20,7 @@ pluginsMap* PluginBaseFactory::map_;
 //----------Simple function to track memory and CPU usage---------------------------------
 void TrackProcess(float* cpu, float* mem, float* vsz, float* rss)
 {
-    string dummy1;
-    int dummy2;
+    string dummy1, dummy2, dummy3, dummy4, dummy5;
     string time;
     //---get cpu/mem info
     int pid = getpid();
@@ -29,7 +28,8 @@ void TrackProcess(float* cpu, float* mem, float* vsz, float* rss)
     system(ps_command.c_str());
     ifstream proc_tmp(".H4Reco_proc.tmp", ios::in);
     getline(proc_tmp, dummy1);
-    proc_tmp >> dummy1 >> dummy2 >> cpu[0] >> mem[0] >> vsz[0] >> rss[0] >> time;
+    proc_tmp >> dummy1 >> dummy2 >> cpu[0] >> mem[0] >> vsz[0] >> rss[0]
+             >> dummy3 >> dummy4 >> dummy5 >> time;
     vsz[0] = vsz[0]/1000;
     rss[0] = rss[0]/1000;
     proc_tmp.close();
@@ -51,12 +51,13 @@ void TrackProcess(float* cpu, float* mem, float* vsz, float* rss)
 }
                   
 //----------Get input files---------------------------------------------------------------
-void ReadInputFiles(CfgManager& opts, TChain* inTree, string run)
+void ReadInputFiles(CfgManager& opts, TChain* inTree)
 {
     int nFiles=0;
     string ls_command;
     string file;
     string path=opts.GetOpt<string>("h4reco.path2data");
+    string run=opts.GetOpt<string>("h4reco.run");
 
     //---Get file list searching in specified path (eos or locally)
     if(path.find("/eos/cms") != string::npos)
@@ -99,10 +100,15 @@ int main(int argc, char* argv[])
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
 
-    //-----input setup-----
-    string run = argc>2 ? argv[2] : opts.GetOpt<string>("h4reco.run");
+    //-----input setup-----    
+    if(argc > 2)
+    {
+        vector<string> run(1, argv[2]);
+        opts.SetOpt("h4reco.run", run);
+    }
+    string run=opts.GetOpt<string>("h4reco.run");
     TChain* inTree = new TChain("H4tree");
-    ReadInputFiles(opts, inTree, run);
+    ReadInputFiles(opts, inTree);
     H4Tree h4Tree(inTree);
 
     //-----output setup-----
@@ -178,6 +184,7 @@ int main(int argc, char* argv[])
         }
     }
     mainTree.Write();
+    opts.Write("cfg");
     outROOT->Close();
     TrackProcess(cpu, mem, vsz, rss);
 

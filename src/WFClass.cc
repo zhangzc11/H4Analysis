@@ -412,6 +412,11 @@ void WFClass::FFT(WFClass& wf, float tau, int cut)
 
     for(int i=0;i<n ;i++)
         wf.AddSample(inv_re[i]/n);
+
+    delete vinvfft;
+    delete vfft;
+
+    return;
 }
 
 //----------compute baseline RMS (noise)--------------------------------------------------

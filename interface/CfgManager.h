@@ -24,7 +24,7 @@ class CfgManager: public TObject
 public:
     //---ctors---
     CfgManager() {};
-    CfgManager(map<string, vector<string> >* defaultCfg) {SetCfg(defaultCfg);};
+    CfgManager(map<string, vector<string> >* defaultCfg) {opts_=*defaultCfg;};
     CfgManager(const char* file) {ParseConfigFile(file);};
     //---dtor---
     ~CfgManager() {};
@@ -33,8 +33,10 @@ public:
     template<typename T=bool> T GetOpt(string key, int opt=0);
                     
     //---setters---
-    inline void            SetCfg(map<string, vector<string> >* defaultCfg)
-    {opts_ = *defaultCfg;};
+    inline void            SetOpt(const char* key, vector<string>& v_opt)
+        {opts_["opts."+string(key)]=v_opt;};
+    inline void            SetOpt(string& key, vector<string>& v_opt)
+        {opts_["opts."+key]=v_opt;};
 
     //---utils
     bool                   OptExist(string key, int opt=0);
