@@ -5,10 +5,10 @@
 bool WireReco::Begin(CfgManager& opts, int* index)
 {
     //---get wire chamber mapping
-    chXl_ = opts.GetOpt<int>("WireChamber.chXleft");
-    chXr_ = opts.GetOpt<int>("WireChamber.chXright");
-    chYu_ = opts.GetOpt<int>("WireChamber.chYup");
-    chYd_ = opts.GetOpt<int>("WireChamber.chYdown");
+    chXl_ = opts.GetOpt<int>(instanceName_+".chXleft");
+    chXr_ = opts.GetOpt<int>(instanceName_+".chXright");
+    chYu_ = opts.GetOpt<int>(instanceName_+".chYup");
+    chYd_ = opts.GetOpt<int>(instanceName_+".chYdown");
     
     //---create a position tree
     RegisterSharedData(new TTree("wire", "wire_tree"), "wire_tree", true);
