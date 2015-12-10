@@ -51,7 +51,7 @@ public:
 
     //---setters---
     void         SetTemplate(TH1F* h_template);
-    void         SetTree(const char* reco_tree="reco_tree", const char* wf_tree="wf");
+    void         SetTree(const char* digi_tree="digi_tree", const char* wf_tree="wf");
     void         SetTree(TTree* tree) {tree_ = tree;};
     void         SetChannelName(string name) {name_ = name;};
 

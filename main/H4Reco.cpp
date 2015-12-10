@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     {
         cout << ">>> Loading plugin <" << plugin << ">" << endl;
         pluginSequence.push_back(PluginBaseFactory::CreateInstance(opts.GetOpt<string>(plugin+".pluginType")));
-        pluginSequence.back()->SetInstanceName(plugin);
+        pluginSequence.back()->SetInstanceName(plugin);        
     }
     
     //---begin
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
             tree->SetDirectory(outROOT);
         }
     }
-
+            
     //---events loop
     int maxEvents=opts.GetOpt<int>("h4reco.maxEvents");
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
@@ -154,6 +154,7 @@ int main(int argc, char* argv[])
         //---call ProcessEvent for each plugin
         for(auto& plugin : pluginSequence)
             plugin->ProcessEvent(h4Tree, opts);
+
         //---fill the main tree with info variables and increase event counter
         mainTree.time_stamp = h4Tree.evtTime;
         mainTree.run = h4Tree.runNumber;

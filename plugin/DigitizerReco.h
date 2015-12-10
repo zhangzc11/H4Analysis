@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "plugin/PluginBase.h"
-#include "interface/RecoTree.h"
+#include "interface/DigiTree.h"
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"
 #include "interface/WFClassNINO.h"
@@ -29,7 +29,7 @@ private:
     float                       tUnit_;
     vector<string>              channelsNames_;
     map<string, vector<float> > timeOpts_;
-    RecoTree                    recoTree_;
+    DigiTree                    recoTree_;
     WFTree                      outWFTree_;
     map<string, WFClass*>       WFs;
     map<string, WFViewer>       WFViewers;

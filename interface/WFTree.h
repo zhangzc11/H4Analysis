@@ -26,8 +26,6 @@ public:
     //---utils---
     void Init();
     void Fill() {tree_->Fill();};
-    void Write(const char* name="wf_tree", const char* title="wf_tree")
-        {tree_->BuildIndex("index"); tree_->SetTitle(title); tree_->Write(name);};
 
     TTree* tree_; 
     string suffix_;

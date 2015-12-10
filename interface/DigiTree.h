@@ -1,5 +1,5 @@
-#ifndef __RECO_TREE__
-#define __RECO_TREE__
+#ifndef __DIGI_TREE__
+#define __DIGI_TREE__
 
 #include <memory>
 #include <iostream>
@@ -16,20 +16,18 @@ typedef unsigned long long int uint64;
  
 //****************************************************************************************
 
-class RecoTree
+class DigiTree
 {
 public: 
     //---ctors---
-    RecoTree(){};
-    RecoTree(int* idx, TTree* tree=NULL, string prefix="");
+    DigiTree(){};
+    DigiTree(int* idx, TTree* tree=NULL, string prefix="");
     //---dtor---
-    ~RecoTree();
+    ~DigiTree();
 
     //---utils---
     void Init(vector<string>& names);
     void Fill() {tree_->Fill();};
-    void Write(const char* name="reco_tree", const char* title="reco_tree")
-        {tree_->BuildIndex("index"); tree_->SetTitle(title); tree_->Write(name);};
     
     TTree*        tree_; 
     string        prefix_;

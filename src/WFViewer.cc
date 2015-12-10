@@ -1,5 +1,5 @@
 #include "interface/WFViewer.h"
-#include "interface/RecoTree.h"
+#include "interface/DigiTree.h"
 
 #include "TStyle.h"
 #include "TLine.h"
@@ -11,7 +11,7 @@ WFViewer::WFViewer():
 {
     TFile* currentFile = gROOT->GetFile();    
     if(currentFile)
-        tree_ = (TTree*)currentFile->Get("reco_tree");
+        tree_ = (TTree*)currentFile->Get("digi_tree");
 }
 
 WFViewer::WFViewer(const char* tree_name):
@@ -19,7 +19,7 @@ WFViewer::WFViewer(const char* tree_name):
 {
     TFile* currentFile = gROOT->GetFile();
     if(!tree_name)
-        tree_name = "reco_tree";
+        tree_name = "digi_tree";
     if(currentFile)
         tree_ = (TTree*)currentFile->Get(tree_name);
     else
@@ -45,7 +45,7 @@ WFViewer::~WFViewer()
 {}
 
 //**********Setters***********************************************************************
-//----------Set the RecoTree--------------------------------------------------------------
+//----------Set the DigiTree--------------------------------------------------------------
 void WFViewer::SetTemplate(TH1F* h_template)
 {
     h_template_ = *h_template;
@@ -53,15 +53,15 @@ void WFViewer::SetTemplate(TH1F* h_template)
     return;
 }    
 
-//----------Set the RecoTree--------------------------------------------------------------
-void WFViewer::SetTree(const char* reco_tree, const char* wf_tree)
+//----------Set the DigiTree--------------------------------------------------------------
+void WFViewer::SetTree(const char* digi_tree, const char* wf_tree)
 {
-    if(!tree_ || tree_->GetName() != reco_tree)
+    if(!tree_ || tree_->GetName() != digi_tree)
     {
         TFile* currentFile = gROOT->GetFile();
         if(currentFile)
         {            
-            tree_ = (TTree*)currentFile->Get(reco_tree);
+            tree_ = (TTree*)currentFile->Get(digi_tree);
             h_pull_.SetAxisRange(-1, 1, "Y");
             h_pull_.SetFillColor(kBlack);
             h_pull_.SetFillStyle(3244);
@@ -70,7 +70,7 @@ void WFViewer::SetTree(const char* reco_tree, const char* wf_tree)
         }
     }
     if(!tree_)
-        cout << "ERROR SetTree(): TTree '" << reco_tree << "' not found" << endl;
+        cout << "ERROR SetTree(): TTree '" << digi_tree << "' not found" << endl;
     
     return;
 }
@@ -146,7 +146,7 @@ void WFViewer::Draw(unsigned int iEntry, const char* wf_tree)
     if(tree_->GetNbranches() == 0)
         SetTree();
 
-    //---set relevant branches reco_tree
+    //---set relevant branches digi_tree
     unsigned int n_channels = 0;
     tree_->SetBranchAddress("n_channels", &n_channels);    
     tree_->GetEntry(iEntry);

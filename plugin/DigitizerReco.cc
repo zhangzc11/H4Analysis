@@ -26,8 +26,6 @@ bool DigitizerReco::Begin(CfgManager& opts, int* index)
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
             TH1* wfTemplate=(TH1*)templateFile->Get((opts.GetOpt<string>(channel+".templateFit.file", 1)+
                                                      +"_"+templateTag).c_str());
-            cout << (opts.GetOpt<string>(channel+".templateFit.file", 1)+
-                     +"_"+templateTag).c_str() << endl;
             WFs[channel]->SetTemplate(wfTemplate);
             WFViewers[channel]=WFViewer(channel, (TH1F*)wfTemplate);
             RegisterSharedData(&WFViewers[channel], channel+"_view", true);
@@ -41,7 +39,7 @@ bool DigitizerReco::Begin(CfgManager& opts, int* index)
     string recoTreeName = opts.GetOpt(instanceName_+".recoTreeName") ?
         opts.GetOpt<string>(instanceName_+".recoTreeName") : "reco";
     RegisterSharedData(new TTree(recoTreeName.c_str(), "reco_tree"), "reco_tree", true);
-    recoTree_ = RecoTree(index, (TTree*)data_.back().obj);
+    recoTree_ = DigiTree(index, (TTree*)data_.back().obj);
     recoTree_.Init(channelsNames_);
     if(opts.GetOpt<int>(instanceName_+".fillWFtree"))
     {

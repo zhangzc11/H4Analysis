@@ -1,6 +1,6 @@
-#include "interface/RecoTree.h"
+#include "interface/DigiTree.h"
 
-RecoTree::RecoTree(int* idx, TTree* tree, string prefix)
+DigiTree::DigiTree(int* idx, TTree* tree, string prefix)
 {
     prefix_=prefix;
     tree_ = tree ? tree : new TTree();
@@ -9,7 +9,7 @@ RecoTree::RecoTree(int* idx, TTree* tree, string prefix)
     time_stamp=0;
 }
 
-void RecoTree::Init(vector<string>& names)
+void DigiTree::Init(vector<string>& names)
 {
     //---allocate enough space for all channels
     n_channels = names.size();
@@ -52,5 +52,5 @@ void RecoTree::Init(vector<string>& names)
     tree_->Branch((prefix_+"fit_chi2").c_str(), fit_chi2, (prefix_+"fit_chi2["+size_var+"]/F").c_str());
 }
 
-RecoTree::~RecoTree()
+DigiTree::~DigiTree()
 {}
