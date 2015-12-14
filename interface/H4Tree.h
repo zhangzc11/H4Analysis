@@ -36,6 +36,10 @@ public:
     unsigned int  runNumber;
     unsigned int  spillNumber;
     unsigned int  evtNumber;
+    unsigned int  nAdcChannels;
+    unsigned int* adcBoard;
+    unsigned int* adcChannel;
+    unsigned int* adcData;
     unsigned int  nTdcChannels;
     unsigned int* tdcChannel;
     unsigned int* tdcData;

@@ -16,11 +16,21 @@ H4Tree::H4Tree(TChain* tree)
     tree_->SetBranchAddress("evtNumber", &evtNumber);
 
     //---size branches
+    nAdcChannels = 0;
     nPatterns = 0;
     nDigiSamples = 0;
+    tree_->SetBranchAddress("nAdcChannels", &nAdcChannels);
     tree_->SetBranchAddress("nPatterns", &nPatterns);
     tree_->SetBranchAddress("nDigiSamples", &nDigiSamples);
     tree_->GetEntry(0);
+
+    //---ADC branches
+    adcBoard = new unsigned int[nAdcChannels]{0};
+    adcChannel = new unsigned int[nAdcChannels]{0};
+    adcData = new unsigned int[nAdcChannels]{0};
+    tree_->SetBranchAddress("adcBoard", adcBoard);
+    tree_->SetBranchAddress("adcChannel", adcChannel);
+    tree_->SetBranchAddress("adcData", adcData);
 
     //---Wire chambers branches
     nTdcChannels = 0;
@@ -30,7 +40,7 @@ H4Tree::H4Tree(TChain* tree)
     tree_->SetBranchAddress("tdcChannel", tdcChannel);
     tree_->SetBranchAddress("tdcData", tdcData);
     
-    //---HODO branches
+    //---Pattern branches
     pattern = new unsigned int[nPatterns]{0};
     patternBoard = new unsigned int[nPatterns]{0};
     patternChannel = new unsigned int[nPatterns]{0};
