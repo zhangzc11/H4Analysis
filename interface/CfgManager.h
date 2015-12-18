@@ -2,6 +2,7 @@
 #define __CFG_MANAGER__
 
 #include <unistd.h>
+#include <pwd.h>
 #include <time.h>
 #include <ctime>
 #include <iostream>

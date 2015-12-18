@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 
     //---memory consumption tracking---
     float cpu[2]{0}, mem[2]={0}, vsz[2]={0}, rss[2]={0};
-    
+
     //---load options---    
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
@@ -106,25 +106,28 @@ int main(int argc, char* argv[])
         vector<string> run(1, argv[2]);
         opts.SetOpt("h4reco.run", run);
     }
-    string run=opts.GetOpt<string>("h4reco.run");
+    string outSuffix = opts.GetOpt<string>("h4reco.outNameSuffix");
+    string run = opts.GetOpt<string>("h4reco.run");
     TChain* inTree = new TChain("H4tree");
     ReadInputFiles(opts, inTree);
     H4Tree h4Tree(inTree);
 
     //-----output setup-----
     int index=0;
-    TFile* outROOT = new TFile("ntuples/"+TString(run)+".root", "RECREATE");
+    TFile* outROOT = new TFile("ntuples/"+outSuffix+TString(run)+".root", "RECREATE");
     InfoTree mainTree(&index);
 
     //---Get plugin sequence---
-    vector<PluginBase*> pluginSequence;    
+    map<string, PluginBase*> pluginMap;
+    vector<PluginBase*> pluginSequence;
     vector<string> pluginList = opts.GetOpt<vector<string> >("h4reco.pluginList");    
     //---plugin creation
     for(auto& plugin : pluginList)
     {
         cout << ">>> Loading plugin <" << plugin << ">" << endl;
         pluginSequence.push_back(PluginBaseFactory::CreateInstance(opts.GetOpt<string>(plugin+".pluginType")));
-        pluginSequence.back()->SetInstanceName(plugin);        
+        pluginSequence.back()->SetInstanceName(plugin);
+        pluginMap[plugin] = pluginSequence.back();
     }
     
     //---begin
@@ -153,7 +156,7 @@ int main(int argc, char* argv[])
         }
         //---call ProcessEvent for each plugin
         for(auto& plugin : pluginSequence)
-            plugin->ProcessEvent(h4Tree, opts);
+            plugin->ProcessEvent(h4Tree, pluginMap, opts);
 
         //---fill the main tree with info variables and increase event counter
         mainTree.time_stamp = h4Tree.evtTime;
@@ -167,6 +170,9 @@ int main(int argc, char* argv[])
     //---end
     for(auto& plugin : pluginSequence)
     {
+        //---call endjob for each plugin
+        plugin->End(opts);
+        //---get permanent data from each plugin and store them in the out file
         for(auto& shared : plugin->GetSharedData())
         {
             if(shared.obj->IsA()->GetName() == string("TTree"))
@@ -184,6 +190,8 @@ int main(int argc, char* argv[])
             }
         }
     }
+
+    //---close
     mainTree.Write();
     opts.Write("cfg");
     outROOT->Close();

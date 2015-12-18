@@ -51,7 +51,7 @@ bool DigitizerReco::Begin(CfgManager& opts, int* index)
     }
 }
 
-bool DigitizerReco::ProcessEvent(const H4Tree& event, CfgManager& opts)
+bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     //---setup output event 
     int outCh=0;

@@ -81,7 +81,7 @@ bool HodoReco::Begin(CfgManager& opts, int* index)
     return true;
 }
 
-bool HodoReco::ProcessEvent(const H4Tree& h4Tree, CfgManager& opts)
+bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     std::map<int,std::map<int,bool> > hodoFiberOn;
     

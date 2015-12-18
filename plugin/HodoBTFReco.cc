@@ -13,7 +13,7 @@ bool HodoBTFReco::Begin(CfgManager& opts, int* index)
     return true;
 }
 
-bool HodoBTFReco::ProcessEvent(const H4Tree& h4Tree, CfgManager& opts)
+bool HodoBTFReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
 
     return true;

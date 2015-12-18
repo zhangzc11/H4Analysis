@@ -16,6 +16,7 @@ bool CfgManager::OptExist(string key, int opt)
 //----------Parse configuration file and setup the configuration--------------------------
 void CfgManager::ParseConfigFile(const char* file)
 {
+    cout << file << endl;
     //---read config file
     ifstream cfgFile(file, ios::in);
     string buffer;
@@ -68,7 +69,7 @@ void CfgManager::ParseConfigFile(const char* file)
     //---set automatic info
     char hostname[100];
     gethostname(hostname, 100);
-    username_ = string(getlogin())+"@"+hostname;
+    username_ = string(getpwuid(getuid())->pw_name)+"@"+hostname;
     time_t rawtime;
     time(&rawtime);
     struct tm* t = localtime(&rawtime);

@@ -39,7 +39,7 @@ public:
     
     //---utils---
     virtual bool Begin(CfgManager& opts, int* index){};
-    virtual bool ProcessEvent(const H4Tree& event, CfgManager& opts){};
+    virtual bool ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts){};
     virtual bool End(CfgManager& opts){};
 
 protected:

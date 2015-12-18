@@ -19,7 +19,7 @@ bool WireReco::Begin(CfgManager& opts, int* index)
 }
 
 //----------ProcessEvent------------------------------------------------------------------
-bool WireReco::ProcessEvent(const H4Tree& h4Tree, CfgManager& opts)
+bool WireReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     //---search the first (in time) hit for each channel
     vector<float> timeL, timeR, timeU, timeD;

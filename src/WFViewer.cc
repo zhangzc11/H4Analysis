@@ -11,7 +11,7 @@ WFViewer::WFViewer():
 {
     TFile* currentFile = gROOT->GetFile();    
     if(currentFile)
-        tree_ = (TTree*)currentFile->Get("digi_tree");
+        tree_ = (TTree*)currentFile->Get("h4");
 }
 
 WFViewer::WFViewer(const char* tree_name):
@@ -19,7 +19,7 @@ WFViewer::WFViewer(const char* tree_name):
 {
     TFile* currentFile = gROOT->GetFile();
     if(!tree_name)
-        tree_name = "digi_tree";
+        tree_name = "h4";
     if(currentFile)
         tree_ = (TTree*)currentFile->Get(tree_name);
     else

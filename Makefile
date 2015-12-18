@@ -13,9 +13,9 @@ DEPS = interface/CfgManager.h interface/CfgManagerT.h \
 	interface/InfoTree.h interface/DigiTree.h interface/WFTree.h interface/PositionTree.h interface/H4Tree.h 
 DEPS_OBJS = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o \
 	lib/H4Tree.o lib/InfoTree.o lib/DigiTree.o lib/WFTree.o lib/PositionTree.o lib/H4Dict.so
-PLUG_DEPS = plugin/PluginBase.h plugin/DigitizerReco.h \
-	plugin/HodoReco.h plugin/HodoBTFReco.h plugin/HodoReco.h plugin/WireChamberReco.h
-PLUG_OBJS = lib/plugin/PluginBase.o lib/plugin/DigitizerReco.o \
+PLUG_DEPS = plugin/PluginBase.h plugin/DigitizerReco.h plugin/MakeCovarianceMatrix.h \
+	plugin/HodoReco.h plugin/HodoBTFReco.h plugin/HodoReco.h plugin/WireChamberReco.h 
+PLUG_OBJS = lib/plugin/PluginBase.o lib/plugin/DigitizerReco.o lib/plugin/MakeCovarianceMatrix.o \
 	lib/plugin/HodoReco.o lib/plugin/HodoBTFReco.o lib/plugin/WireChamberReco.o
 DICT_OBJS = lib/CfgManager.o lib/WFViewer.o
 
