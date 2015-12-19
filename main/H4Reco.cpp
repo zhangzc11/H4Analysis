@@ -24,7 +24,7 @@ void TrackProcess(float* cpu, float* mem, float* vsz, float* rss)
     string time;
     //---get cpu/mem info
     int pid = getpid();
-    string ps_command = "ps -up "+to_string(pid)+" >.H4Reco_proc.tmp";
+    string ps_command = "ps up "+to_string(pid)+" >.H4Reco_proc.tmp";
     system(ps_command.c_str());
     ifstream proc_tmp(".H4Reco_proc.tmp", ios::in);
     getline(proc_tmp, dummy1);

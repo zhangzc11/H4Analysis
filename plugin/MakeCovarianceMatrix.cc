@@ -8,10 +8,12 @@ bool MakeCovarianceMatrix::Begin(CfgManager& opts, int* index)
     firstSample_ = opts.GetOpt<int>(instanceName_+".firstSample");
     lastSample_ = opts.GetOpt<int>(instanceName_+".lastSample");
 
-    sums_.resize(lastSample_-firstSample_+1);
-    sum2s_.resize(lastSample_-firstSample_+1);
-    mapCovariances_ = TH2F("CovariancesMap", "", lastSample_-firstSample_+1, firstSample_, lastSample_,
-                           lastSample_-firstSample_+1, firstSample_, lastSample_);
+    sums_.resize(lastSample_-firstSample_);
+    sum2s_.resize(lastSample_-firstSample_);
+    mapCovariances_ = TH2F("CovariancesMap", "", lastSample_-firstSample_, 0, lastSample_-firstSample_-1,
+                           lastSample_-firstSample_, 0, lastSample_-firstSample_-1);
+    mapCovariances_.SetAxisRange(-1, 1, "Z");
+    mapCovariances_.SetContour(10000);
     RegisterSharedData(&mapCovariances_, "CovariancesMap", true);
     
     return true;
@@ -20,14 +22,14 @@ bool MakeCovarianceMatrix::Begin(CfgManager& opts, int* index)
 bool MakeCovarianceMatrix::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     for(auto& channel : channelsNames_)
-    {
+    {        
         WFClass* wf = (WFClass*)plugins[digiInstance_]->GetSharedData(digiInstance_+"_"+channel, "", false).at(0).obj;
         vector<float>* samples = wf->GetSamples();
         for(int iSample=firstSample_; iSample<lastSample_; ++iSample)
         {
-            values_[iSample].push_back(samples->at(iSample));
-            sums_[iSample] += samples->at(iSample);
-            sum2s_[iSample] += samples->at(iSample)*samples->at(iSample);
+            values_[iSample-firstSample_].push_back(samples->at(iSample));
+            sums_[iSample-firstSample_] += samples->at(iSample);
+            sum2s_[iSample-firstSample_] += samples->at(iSample)*samples->at(iSample);
         }
     }
     ++events_;
@@ -39,7 +41,7 @@ bool MakeCovarianceMatrix::End(CfgManager& opts)
 {
     map<int, float> mean, rms;
     //---compute mean and rms of each sample
-    for(int iSample=firstSample_; iSample<lastSample_; ++iSample)
+    for(int iSample=0; iSample<sums_.size(); ++iSample)
     {
         mean[iSample] = sums_[iSample]/events_;
         rms[iSample] = sqrt(sum2s_[iSample]/events_ - mean[iSample]*mean[iSample]);
@@ -47,9 +49,9 @@ bool MakeCovarianceMatrix::End(CfgManager& opts)
         // hRMSs.Fill(rms[iSample]);
     }
     //---compute covariances
-    for(int iX=firstSample_; iX<lastSample_; ++iX)
+    for(int iX=0; iX<sums_.size(); ++iX)
     {
-        for(int iY=firstSample_; iY<iX; ++iY)
+        for(int iY=0; iY<iX; ++iY)
         {
             float rho=0;
             for(int iEvt=0; iEvt<events_; ++iEvt)
@@ -57,8 +59,8 @@ bool MakeCovarianceMatrix::End(CfgManager& opts)
                     - values_[iX][iEvt]*mean[iY] - values_[iY][iEvt]*mean[iX];
             rho += events_*mean[iX]*mean[iY];
             rho = rho/((events_-1)*rms[iX]*rms[iY]);
-            mapCovariances_.SetBinContent(iX-firstSample_+1, iY-firstSample_+1, rho);
-            mapCovariances_.SetBinContent(iY-firstSample_+1, iX-firstSample_+1, rho);
+            mapCovariances_.SetBinContent(iX+1, iY+1, rho);
+            mapCovariances_.SetBinContent(iY+1, iX+1, rho);
         }
     }
 
