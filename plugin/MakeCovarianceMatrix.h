@@ -24,15 +24,15 @@ public:
     
 private:    
     //---internal data
-    int                      events_;
-    int                      firstSample_;
-    int                      lastSample_;
-    string                   digiInstance_;             
-    vector<string>           channelsNames_;
-    vector<float>            sums_;
-    vector<float>            sum2s_;
-    map<int, vector<float> > values_;
-    TH2F                     mapCovariances_;
+    int                            events_;
+    int                            firstSample_;
+    int                            lastSample_;
+    string                         digiInstance_;             
+    vector<string>                 channelsNames_;
+    map<string, TH2F>              mapCovariances_;
+    map<string, vector<float> >            sums_;
+    map<string, vector<float> >            sum2s_;
+    map<string, map<int, vector<float> > > values_;
 
     //---datamember for registration
     PLUGIN_REGISTER(MakeCovarianceMatrix);
