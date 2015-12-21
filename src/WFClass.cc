@@ -514,3 +514,81 @@ void WFClass::Print()
     for (int i=0; i<samples_.size(); ++i)
         std::cout << "SAMPLE " << i << ": " << samples_[i] << std::endl;
 }
+
+//**********operators*********************************************************************
+//----------assignment--------------------------------------------------------------------
+WFClass& WFClass::operator=(const WFClass& origin)
+{
+    samples_ = origin.samples_;
+    tUnit_ = origin.tUnit_;
+    polarity_ = origin.polarity_;
+    sWinMin_ = origin.sWinMin_;
+    sWinMax_ = origin.sWinMax_;
+    bWinMin_ = origin.bWinMin_;
+    bWinMax_ = origin.bWinMax_;
+    maxSample_ = origin.maxSample_;
+    fitAmpMax_ = origin.fitAmpMax_;
+    baseline_ = origin.baseline_;
+    bRMS_ = origin.bRMS_;
+    cfSample_ = origin.cfSample_;
+    cfFrac_ = origin.cfFrac_;
+    cfTime_ = origin.cfTime_;
+    leSample_ = origin.leSample_;
+    leThr_ = origin.leThr_;
+    leTime_ = origin.leTime_;
+    chi2cf_ = origin.chi2cf_;
+    chi2le_ = origin.chi2le_;
+    fWinMin_ = origin.fWinMin_;
+    fWinMax_ = origin.fWinMax_;
+    tempFitTime_ = origin.tempFitTime_;
+    tempFitAmp_ = origin.tempFitAmp_;
+    interpolator_ = NULL;
+
+    return *this;
+}
+
+//----------subtraction-------------------------------------------------------------------
+WFClass WFClass::operator-(const WFClass& sub)
+{
+    if(tUnit_ != sub.tUnit_)
+        return *this;
+
+    WFClass diff(1, tUnit_);
+    for(int iSample=0; iSample<min(samples_.size(), sub.samples_.size()); ++iSample)
+        diff.AddSample(samples_[iSample] - sub.samples_[iSample]);
+
+    return diff;
+}
+
+//----------addition----------------------------------------------------------------------
+WFClass WFClass::operator+(const WFClass& sub)
+{
+    if(tUnit_ != sub.tUnit_)
+        return *this;
+
+    WFClass sum(1, tUnit_);
+    for(int iSample=0; iSample<min(samples_.size(), sub.samples_.size()); ++iSample)
+        sum.AddSample(samples_[iSample] + sub.samples_[iSample]);
+
+    return sum;
+}
+
+//----------subtraction and assignment----------------------------------------------------
+WFClass& WFClass::operator-=(const WFClass& sub)
+{
+    if(tUnit_ == sub.tUnit_)
+        for(int iSample=0; iSample<min(samples_.size(), sub.samples_.size()); ++iSample)
+            samples_[iSample] -= sub.samples_[iSample];
+    
+    return *this;
+}
+
+//----------addition and assignmet--------------------------------------------------------
+WFClass& WFClass::operator+=(const WFClass& sub)
+{
+    if(tUnit_ == sub.tUnit_)
+        for(int iSample=0; iSample<min(samples_.size(), sub.samples_.size()); ++iSample)
+            samples_[iSample] += sub.samples_[iSample];
+    
+    return *this;
+}

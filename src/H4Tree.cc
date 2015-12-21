@@ -39,15 +39,15 @@ H4Tree::H4Tree(TChain* tree)
     tree_->SetBranchAddress("nTdcChannels", &nTdcChannels);
     tree_->SetBranchAddress("tdcChannel", tdcChannel);
     tree_->SetBranchAddress("tdcData", tdcData);
-    
+
     //---Pattern branches
-    pattern = new unsigned int[nPatterns]{0};
-    patternBoard = new unsigned int[nPatterns]{0};
-    patternChannel = new unsigned int[nPatterns]{0};
+    pattern = new unsigned int[nPatterns];
+    patternBoard = new unsigned int[nPatterns];
+    patternChannel = new unsigned int[nPatterns];
     tree_->SetBranchAddress("pattern", pattern);
     tree_->SetBranchAddress("patternBoard", patternBoard);
     tree_->SetBranchAddress("patternChannel", patternChannel);
-    
+
     //---digitizer branches
     digiGroup = new unsigned int[nDigiSamples]{0};
     digiChannel = new unsigned int[nDigiSamples]{0};

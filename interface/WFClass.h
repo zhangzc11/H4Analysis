@@ -68,6 +68,12 @@ public:
     void                  EmulatedWF(WFClass& wf, float rms, float amplitude, float time);
     void                  FFT(WFClass& wf, float tau, int cut);
     void                  Print();
+    //---operators---
+    WFClass&              operator=(const WFClass& origin);
+    WFClass               operator-(const WFClass& sub);
+    WFClass               operator+(const WFClass& add);
+    WFClass&              operator-=(const WFClass& sub);
+    WFClass&              operator+=(const WFClass& add);
 protected:
     //---utils---
     float                 BaselineRMS();
