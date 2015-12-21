@@ -19,7 +19,7 @@ class WFTree
 public: 
     //---ctors---
     WFTree(){};
-    WFTree(int nCh, int nSamples, int* idx, TTree* tree=NULL, string suffix="");
+    WFTree(int nCh, int nSamples, uint64* idx, TTree* tree=NULL, string suffix="");
     //---dtor---
     ~WFTree(){};
 
@@ -30,12 +30,12 @@ public:
     TTree* tree_; 
     string suffix_;
 
-    int*   index;
-    uint64 time_stamp;
-    int    WF_samples;
-    int*   WF_ch; 
-    float* WF_time;
-    float* WF_val;
+    uint64* index;
+    uint64  time_stamp;
+    int     WF_samples;
+    int*    WF_ch; 
+    float*  WF_time;
+    float*  WF_val;
 };
 
 #endif

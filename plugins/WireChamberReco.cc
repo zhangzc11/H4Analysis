@@ -2,7 +2,7 @@
 
 //**********Utils*************************************************************************
 //----------Begin-------------------------------------------------------------------------
-bool WireReco::Begin(CfgManager& opts, int* index)
+bool WireReco::Begin(CfgManager& opts, uint64* index)
 {
     //---get wire chamber mapping
     chXl_ = opts.GetOpt<int>(instanceName_+".chXleft");

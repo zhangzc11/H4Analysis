@@ -1,7 +1,7 @@
 #include "plugins/MakeCovarianceMatrix.h"
 
 //----------Utils-------------------------------------------------------------------------
-bool MakeCovarianceMatrix::Begin(CfgManager& opts, int* index)
+bool MakeCovarianceMatrix::Begin(CfgManager& opts, uint64* index)
 {
     digiInstance_ = opts.GetOpt<string>(instanceName_+".digiInstanceName");
     channelsNames_ = opts.GetOpt<vector<string> >(instanceName_+".channelsNames");

@@ -21,7 +21,7 @@ class DigiTree
 public: 
     //---ctors---
     DigiTree(){};
-    DigiTree(int* idx, TTree* tree=NULL, string prefix="");
+    DigiTree(uint64* idx, TTree* tree=NULL, string prefix="");
     //---dtor---
     ~DigiTree();
 
@@ -32,7 +32,7 @@ public:
     TTree*        tree_; 
     string        prefix_;
 
-    int*          index;
+    uint64*       index;
     uint64        time_stamp;
     unsigned int  n_channels;
     float*        b_charge;

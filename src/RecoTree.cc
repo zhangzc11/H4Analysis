@@ -1,6 +1,6 @@
 #include "interface/RecoTree.h"
 
-RecoTree::RecoTree(int* idx, TTree* tree)
+RecoTree::RecoTree(uint64* idx, TTree* tree)
 {
     tree_ = tree ? tree : new TTree();
 
@@ -11,7 +11,7 @@ RecoTree::RecoTree(int* idx, TTree* tree)
     spill=0;
     event=0;   
     //---global branches
-    tree_->Branch("index", index, "index/I");
+    tree_->Branch("index", index, "index/l");
     tree_->Branch("start_time", &start_time, "start_time/l");
     tree_->Branch("time_stamp", &time_stamp, "time_stamp/l");
     tree_->Branch("run", &run, "run/i");

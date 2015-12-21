@@ -19,7 +19,7 @@ class RecoTree
 public: 
     //---ctors---
     RecoTree(){};
-    RecoTree(int* idx, TTree* tree=NULL);
+    RecoTree(uint64* idx, TTree* tree=NULL);
     //---dtor---
     ~RecoTree();
 
@@ -31,7 +31,7 @@ public:
 
     TTree* tree_; 
 
-    int*         index;
+    uint64*      index;
     uint64       start_time;
     uint64       time_stamp;
     unsigned int run;

@@ -1,6 +1,6 @@
 #include "interface/PositionTree.h"
 
-PositionTree::PositionTree(int* idx, TTree* tree, int nPlanes)
+PositionTree::PositionTree(uint64* idx, TTree* tree, int nPlanes)
 {
     tree_ = tree ? tree : new TTree();
 
@@ -11,7 +11,7 @@ PositionTree::PositionTree(int* idx, TTree* tree, int nPlanes)
 void PositionTree::Init()
 {
     //---global branches
-    tree_->Branch("index", index, "index/I");
+    tree_->Branch("index", index, "index/l");
     //---position branches
     X = new float[n_planes];
     Y = new float[n_planes];

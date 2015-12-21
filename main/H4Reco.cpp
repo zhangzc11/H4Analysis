@@ -1,5 +1,5 @@
-#ifndef __MAIN__
-#define __MAIN__
+#ifndef __H4_RECO__
+#define __H4_RECO__
 
 #include <unistd.h>
 #include <iostream>
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     H4Tree h4Tree(inTree);
 
     //-----output setup-----
-    int index=0;
+    uint64 index=stoul(run)*1e9;
     TFile* outROOT = new TFile("ntuples/"+outSuffix+TString(run)+".root", "RECREATE");
     RecoTree mainTree(&index);
 
@@ -145,11 +145,11 @@ int main(int argc, char* argv[])
     //---events loop
     int maxEvents=opts.GetOpt<int>("h4reco.maxEvents");
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
-    while(h4Tree.NextEvt() && (index<maxEvents || maxEvents==-1))
+    while(h4Tree.NextEvt() && (index-stoul(run)*1e9<maxEvents || maxEvents==-1))
     {
         if(index % 1000 == 0)
         {
-            cout << ">>>Processed events: " << index << "/"
+            cout << ">>>Processed events: " << index-stoul(run)*1e9 << "/"
                  << (maxEvents<0 ? h4Tree.GetEntries() : min((int)h4Tree.GetEntries(), maxEvents))
                  << endl;
             TrackProcess(cpu, mem, vsz, rss);

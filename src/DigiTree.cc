@@ -1,6 +1,6 @@
 #include "interface/DigiTree.h"
 
-DigiTree::DigiTree(int* idx, TTree* tree, string prefix)
+DigiTree::DigiTree(uint64* idx, TTree* tree, string prefix)
 {
     prefix_=prefix;
     tree_ = tree ? tree : new TTree();
@@ -35,7 +35,7 @@ void DigiTree::Init(vector<string>& names)
     }
     //---global branches    
     string size_var = "n_"+prefix_+"channels";
-    tree_->Branch("index", index, "index/I");
+    tree_->Branch("index", index, "index/l");
     tree_->Branch("time_stamp", &time_stamp, "time_stamp/l");
     tree_->Branch(size_var.c_str(), &n_channels, (size_var+"/i").c_str());
     tree_->Branch((prefix_+"b_charge").c_str(), b_charge, (prefix_+"b_charge["+size_var+"]/F").c_str());

@@ -2,7 +2,7 @@
 
 //**********Utils*************************************************************************
 //----------Begin*************************************************************************
-bool HodoBTFReco::Begin(CfgManager& opts, int* index)
+bool HodoBTFReco::Begin(CfgManager& opts, uint64* index)
 {
 
     //---create a position tree

@@ -2,7 +2,7 @@
 
 //**********Utils*************************************************************************
 //----------Begin*************************************************************************
-bool HodoReco::Begin(CfgManager& opts, int* index)
+bool HodoReco::Begin(CfgManager& opts, uint64* index)
 {
     hodoFiberOrderA_.clear();
     hodoFiberOrderB_.clear();

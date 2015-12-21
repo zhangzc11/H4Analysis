@@ -1,7 +1,7 @@
 #include "DigitizerReco.h"
 
 //----------Utils-------------------------------------------------------------------------
-bool DigitizerReco::Begin(CfgManager& opts, int* index)
+bool DigitizerReco::Begin(CfgManager& opts, uint64* index)
 {
     //---inputs---
     channelsNames_ = opts.GetOpt<vector<string> >(instanceName_+".channelsNames");

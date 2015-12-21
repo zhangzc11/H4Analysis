@@ -7,6 +7,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
+typedef unsigned long long int uint64;
+
 using namespace std;
 
 class PositionTree
@@ -14,7 +16,7 @@ class PositionTree
 public: 
     //---ctors---
     PositionTree(){};
-    PositionTree(int* idx, TTree* tree=NULL, int nPlanes=1);
+    PositionTree(uint64* idx, TTree* tree=NULL, int nPlanes=1);
     //---dtor---
     ~PositionTree(){};
     
@@ -22,12 +24,12 @@ public:
     void Init();
     void Fill() {tree_->Fill();};
 
-    TTree* tree_; 
+    TTree*  tree_; 
 
-    int*   index;
-    int    n_planes;
-    float* X;
-    float* Y;
+    uint64* index;
+    int     n_planes;
+    float*  X;
+    float*  Y;
 };
 
 #endif
