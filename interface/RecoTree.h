@@ -1,5 +1,5 @@
-#ifndef __INFO_TREE__
-#define __INFO_TREE__
+#ifndef __RECO_TREE__
+#define __RECO_TREE__
 
 #include <string>
 #include <vector>
@@ -14,14 +14,14 @@ typedef unsigned long long int uint64;
  
 //****************************************************************************************
 
-class InfoTree
+class RecoTree
 {
 public: 
     //---ctors---
-    InfoTree(){};
-    InfoTree(int* idx, TTree* tree=NULL);
+    RecoTree(){};
+    RecoTree(int* idx, TTree* tree=NULL);
     //---dtor---
-    ~InfoTree();
+    ~RecoTree();
 
     //---utils---
     void Fill() {tree_->Fill();};
@@ -37,13 +37,6 @@ public:
     unsigned int run;
     unsigned int spill;
     unsigned int event;       
-    // int          n_wchamber;
-    // float*       wireX;
-    // float*       wireY;
-    // float        hodoX1;
-    // float        hodoY1;
-    // float        hodoX2;
-    // float        hodoY2;
 };
 
 #endif

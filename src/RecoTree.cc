@@ -1,6 +1,6 @@
-#include "interface/InfoTree.h"
+#include "interface/RecoTree.h"
 
-InfoTree::InfoTree(int* idx, TTree* tree)
+RecoTree::RecoTree(int* idx, TTree* tree)
 {
     tree_ = tree ? tree : new TTree();
 
@@ -19,7 +19,7 @@ InfoTree::InfoTree(int* idx, TTree* tree)
     tree_->Branch("event", &event, "event/i");
 }
 
-InfoTree::~InfoTree()
+RecoTree::~RecoTree()
 {
     delete tree_;
 }

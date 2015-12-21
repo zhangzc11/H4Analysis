@@ -11,7 +11,7 @@
 
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
-#include "interface/InfoTree.h"
+#include "interface/RecoTree.h"
 #include "plugins/PluginBase.h"
 
 typedef map<string, PluginBase*(*)()> pluginsMap;
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     //-----output setup-----
     int index=0;
     TFile* outROOT = new TFile("ntuples/"+outSuffix+TString(run)+".root", "RECREATE");
-    InfoTree mainTree(&index);
+    RecoTree mainTree(&index);
 
     //---Get plugin sequence---
     map<string, PluginBase*> pluginMap;

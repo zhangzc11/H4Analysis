@@ -10,9 +10,9 @@ ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
 
 DEPS = interface/CfgManager.h interface/CfgManagerT.h \
 	interface/WFClass.h interface/WFClassNINO.h interface/WFViewer.h \
-	interface/InfoTree.h interface/DigiTree.h interface/WFTree.h interface/PositionTree.h interface/H4Tree.h 
+	interface/RecoTree.h interface/DigiTree.h interface/WFTree.h interface/PositionTree.h interface/H4Tree.h 
 DEPS_OBJS = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o \
-	lib/H4Tree.o lib/InfoTree.o lib/DigiTree.o lib/WFTree.o lib/PositionTree.o lib/H4Dict.so
+	lib/H4Tree.o lib/RecoTree.o lib/DigiTree.o lib/WFTree.o lib/PositionTree.o lib/H4Dict.so
 PLUG_DEPS = plugins/PluginBase.h plugins/DigitizerReco.h plugins/MakeCovarianceMatrix.h \
 	plugins/HodoReco.h plugins/HodoBTFReco.h plugins/HodoReco.h plugins/WireChamberReco.h 
 PLUG_OBJS = lib/plugins/PluginBase.o lib/plugins/DigitizerReco.o lib/plugins/MakeCovarianceMatrix.o \
