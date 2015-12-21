@@ -12,7 +12,7 @@
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
 #include "interface/InfoTree.h"
-#include "plugin/PluginBase.h"
+#include "plugins/PluginBase.h"
 
 typedef map<string, PluginBase*(*)()> pluginsMap;
 pluginsMap* PluginBaseFactory::map_;

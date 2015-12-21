@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "plugin/PluginBase.h"
+#include "plugins/PluginBase.h"
 #include "interface/DigiTree.h"
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"

@@ -13,10 +13,10 @@ DEPS = interface/CfgManager.h interface/CfgManagerT.h \
 	interface/InfoTree.h interface/DigiTree.h interface/WFTree.h interface/PositionTree.h interface/H4Tree.h 
 DEPS_OBJS = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o \
 	lib/H4Tree.o lib/InfoTree.o lib/DigiTree.o lib/WFTree.o lib/PositionTree.o lib/H4Dict.so
-PLUG_DEPS = plugin/PluginBase.h plugin/DigitizerReco.h plugin/MakeCovarianceMatrix.h \
-	plugin/HodoReco.h plugin/HodoBTFReco.h plugin/HodoReco.h plugin/WireChamberReco.h 
-PLUG_OBJS = lib/plugin/PluginBase.o lib/plugin/DigitizerReco.o lib/plugin/MakeCovarianceMatrix.o \
-	lib/plugin/HodoReco.o lib/plugin/HodoBTFReco.o lib/plugin/WireChamberReco.o
+PLUG_DEPS = plugins/PluginBase.h plugins/DigitizerReco.h plugins/MakeCovarianceMatrix.h \
+	plugins/HodoReco.h plugins/HodoBTFReco.h plugins/HodoReco.h plugins/WireChamberReco.h 
+PLUG_OBJS = lib/plugins/PluginBase.o lib/plugins/DigitizerReco.o lib/plugins/MakeCovarianceMatrix.o \
+	lib/plugins/HodoReco.o lib/plugins/HodoBTFReco.o lib/plugins/WireChamberReco.o
 DICT_OBJS = lib/CfgManager.o lib/WFViewer.o
 
 MAIN = bin/H4Reco
@@ -26,8 +26,8 @@ all: $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx
 lib/%.o: src/%.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
-lib/plugin/%.o: plugin/%.cc $(PLUG_DEPS)
-	mkdir -p lib/plugin
+lib/plugins/%.o: plugins/%.cc $(PLUG_DEPS)
+	mkdir -p lib/plugins
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
 lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/LinkDef.h 

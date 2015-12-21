@@ -1,4 +1,4 @@
-#include "plugin/MakeCovarianceMatrix.h"
+#include "plugins/MakeCovarianceMatrix.h"
 
 //----------Utils-------------------------------------------------------------------------
 bool MakeCovarianceMatrix::Begin(CfgManager& opts, int* index)

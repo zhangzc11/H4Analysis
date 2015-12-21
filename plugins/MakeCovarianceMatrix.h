@@ -6,7 +6,7 @@
 #include "TH2F.h"
 
 #include "interface/WFClass.h"
-#include "plugin/PluginBase.h"
+#include "plugins/PluginBase.h"
 
 class MakeCovarianceMatrix: public PluginBase
 {
