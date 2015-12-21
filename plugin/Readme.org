@@ -1,0 +1,53 @@
+* PluginBase
+** The shared data interface
+   Data created by a plugin can be shared with the main program "H4Reco" of with 
+   other plugins. In order to share a data one should register the data inside the 
+   plugin using the =RegisterSharedData= method. A shared data consist of:
+   - A pointer to the actual object. The pointer points to an object of type =TObject=,
+     so the registered data must inherit from it.
+   - A "tag" that identifies the data. Note that a suffix is automatically attached to the specified tag.
+     This suffix has the form of "InstanceName_" where the instance name is the unique plugin name
+     specified in the =h4reco.pluginSequence= option.
+   - A bool that discriminate between "permanent" and "volatile" data. The former refer to object that
+     are going to be stored in the output file (so they must implement a =Write()= method), while the latter
+     refers to data the are not going to be store permanently in the output but are just shared during the
+     processing (between plugins for instance).
+   - *Note:* If a permanent object is also a TTree it will be added as friend to the main "h4" tree.
+   A Plugin can retrieve data shared by another plugin by calling the =OtherPlugin->GetSharedData(...)= method.
+   The method returns a vector of shared data object matching the requirements specified in the method call.
+   The "OtherPlugin" pointers are available as arguments of the =ProcessEvent(...)= method.
+
+
+* DigitizerReco plugin:
+** Configuration
+   - =channelsNames= defines which channel are analyzed by the plugin.
+     Channel options are specified separately.
+   - The waveform tree is stored optionally and with a configurable prescale.
+** Reco information
+   *All variables are computed after the original baseline is subtracted (event by event)* 
+*** baseline:
+    + *b_charge*: sum of WF samples in a fixed (taken from cfg) window.
+    + *b_slope*: a pol1 =b_slope*x + K= is fit to the baseline.
+    + *b_rms*: RMS of the sample inside the baseline window.
+*** amplitude:
+    + *maximum*: max sample value.
+    + *amp_max*: interpolated amp max (pol2 fit, number of sample used is specified in the cfg).
+    + *fit_ampl*: amplitude extracted from a template fit.
+*** charge:
+    + *charge_sig*: sum of WF samples inside a window defined in the cfg
+    + *charge_tot*: sum of |WF samples| over the whole digitizer window.
+*** time:
+    + *time*: for normal WF is the time computed with a CFD method, in the process =amp_max= is used as 
+      amplitude information. For *NINO* this variables is computed with a leading edge method
+      (threshold set in the cfg, roughly ~40% of amp_max).
+    + *time_chi2*: chi2/ndf of the linear interpolation used to reconstruct the time (both CFD and LED).
+    + *fit_time*: time extracted from the template fit.
+    + *fit_chi2*: chi2/ndf of the template fit.
+*** hodo:
+    + *hodoX, hodoY*: 4 branches (2 in X, 2 in Y).
+*** others:
+    + spill, event, run, start_time: copied from the raw tree.
+    + for each channel a name is specified in the cfg file, a branch with this name is created for each
+      of the channels. Each branch hold the index corresponding to the channel inside the tree, so for 
+      example in order to plot the amplitude of the reference MCP one should do:
+      =reco_tree->Draw("amp_max[MCP1]")=
