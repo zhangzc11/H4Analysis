@@ -1,6 +1,7 @@
 #ifndef __H4_TREE__
 #define __H4_TREE__
 
+#include <iostream>
 #include <map>
 #include <string>
 

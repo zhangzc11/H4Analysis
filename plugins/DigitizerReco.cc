@@ -86,18 +86,19 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         for(int iSample=offset; iSample<offset+nSamples_; ++iSample)
         {
             //---H4DAQ bug: sometimes ADC value is out of bound.
+            //---skip everything if one channel is bad
             if(event.digiSampleValue[iSample] > 4096)
-            {
-                badEvent = true;
-                break;
-            }
+                return false;
             WFs[channel]->AddSample(event.digiSampleValue[iSample]);
         }
-        //---skip everything if one channel has trigger the badEvent flag 
-        if(badEvent)
-            break;
-
-        //---compute reco variables
+    }
+    
+    //---compute reco variables
+    for(auto& channel : channelsNames_)
+    {
+        //---subtract a specified channel if requested
+        if(opts.GetOpt(channel+".subtractChannel"))
+            *WFs[channel] -= *WFs[opts.GetOpt<string>(channel+".subtractChannel")];        
         WFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
                                         opts.GetOpt<int>(channel+".baselineWin", 1));
         WFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
