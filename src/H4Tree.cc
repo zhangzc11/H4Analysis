@@ -6,11 +6,11 @@ H4Tree::H4Tree(TChain* tree)
     currentEntry_=-1;
 
     //---global branches
-    evtTime = 0;
+    evtTimeStart = 0;
     runNumber = 0;
     spillNumber = 0;
     evtNumber =0;
-    tree_->SetBranchAddress("evtTime", &evtTime);
+    tree_->SetBranchAddress("evtTimeStart", &evtTimeStart);
     tree_->SetBranchAddress("runNumber", &runNumber);
     tree_->SetBranchAddress("spillNumber", &spillNumber);
     tree_->SetBranchAddress("evtNumber", &evtNumber);

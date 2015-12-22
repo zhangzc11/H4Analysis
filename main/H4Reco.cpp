@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
             plugin->ProcessEvent(h4Tree, pluginMap, opts);
 
         //---fill the main tree with info variables and increase event counter
-        mainTree.time_stamp = h4Tree.evtTime;
+        mainTree.time_stamp = h4Tree.evtTimeStart;
         mainTree.run = h4Tree.runNumber;
         mainTree.spill = h4Tree.spillNumber;
         mainTree.event = h4Tree.evtNumber;

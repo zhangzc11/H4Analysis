@@ -33,7 +33,7 @@ public:
     TChain* tree_; 
     int     currentEntry_;
     
-    uint64        evtTime;
+    uint64        evtTimeStart;
     unsigned int  runNumber;
     unsigned int  spillNumber;
     unsigned int  evtNumber;

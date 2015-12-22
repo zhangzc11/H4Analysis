@@ -33,7 +33,6 @@ public:
     string        prefix_;
 
     uint64*       index;
-    uint64        time_stamp;
     unsigned int  n_channels;
     float*        b_charge;
     float*        b_slope;

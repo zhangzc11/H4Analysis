@@ -32,7 +32,7 @@ template<> inline vector<float> CfgManager::GetOpt(string key, int opt)
     key = "opts."+key;
     Errors(key, opt);
     vector<float> optsVect;
-    for(int iOpt=0; iOpt<opts_[key].size(); ++iOpt)
+    for(int iOpt=opt; iOpt<opts_[key].size(); ++iOpt)
     {
         double opt_val;
         istringstream buffer(opts_[key][iOpt]);

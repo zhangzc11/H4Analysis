@@ -134,7 +134,6 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
             vector<float>* analizedWF = WFs[channel]->GetSamples();
             for(int jSample=0; jSample<analizedWF->size(); ++jSample)
             {
-                outWFTree_.time_stamp = event.evtTime;
                 outWFTree_.WF_ch[jSample+outCh*nSamples_] = outCh;
                 outWFTree_.WF_time[jSample+outCh*nSamples_] = jSample*tUnit_;
                 outWFTree_.WF_val[jSample+outCh*nSamples_] = analizedWF->at(jSample);
@@ -148,7 +147,6 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
     if(!badEvent)
     {
         //---reco var
-        recoTree_.time_stamp = event.evtTime;
         recoTree_.Fill();
         //---WFs
         if(fillWFtree)
