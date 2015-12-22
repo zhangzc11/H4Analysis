@@ -21,7 +21,7 @@ PLUG_OBJS = lib/plugins/PluginBase.o lib/plugins/DigitizerReco.o lib/plugins/Mak
 	lib/plugins/InfoTreeMaker.o
 DICT_OBJS = lib/CfgManager.o lib/WFViewer.o lib/MCPAnalyzer.o
 
-MAIN = bin/H4Reco bin/H4Add  
+MAIN = bin/H4Reco
 
 all: $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
 
