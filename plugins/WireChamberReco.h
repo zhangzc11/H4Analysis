@@ -1,19 +1,19 @@
-#ifndef __WIRE_RECO__
-#define __WIRE_RECO__
+#ifndef __WIRE_CHMABER_RECO__
+#define __WIRE_CHMABER_RECO__
 
 #include "PluginBase.h"
 #include "interface/PositionTree.h"
 
 using namespace std;
 
-class WireReco: public PluginBase
+class WireChamberReco: public PluginBase
 {
 public:
     //---ctors---
-    WireReco() {};
+    WireChamberReco() {};
 
     //---dtor---
-    ~WireReco() {};
+    ~WireChamberReco() {};
 
     //---utils---
     bool Begin(CfgManager& opts, uint64* index);
@@ -27,10 +27,10 @@ private:
     int              chYd_;
 
     //---datamember for registration
-    PLUGIN_REGISTER(WireReco)
+    PLUGIN_REGISTER(WireChamberReco)
 };
 
-DEFINE_PLUGIN(WireReco);
+DEFINE_PLUGIN(WireChamberReco);
 
 
 #endif

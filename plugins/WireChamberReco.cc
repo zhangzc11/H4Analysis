@@ -2,7 +2,7 @@
 
 //**********Utils*************************************************************************
 //----------Begin-------------------------------------------------------------------------
-bool WireReco::Begin(CfgManager& opts, uint64* index)
+bool WireChamberReco::Begin(CfgManager& opts, uint64* index)
 {
     //---get wire chamber mapping
     chXl_ = opts.GetOpt<int>(instanceName_+".chXleft");
@@ -19,7 +19,7 @@ bool WireReco::Begin(CfgManager& opts, uint64* index)
 }
 
 //----------ProcessEvent------------------------------------------------------------------
-bool WireReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts)
+bool WireChamberReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts)
 {
     //---search the first (in time) hit for each channel
     vector<float> timeL, timeR, timeU, timeD;

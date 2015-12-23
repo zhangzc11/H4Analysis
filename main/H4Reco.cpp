@@ -2,6 +2,7 @@
 #define __H4_RECO__
 
 #include <unistd.h>
+#include <csignal>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -125,9 +126,18 @@ int main(int argc, char* argv[])
     for(auto& plugin : pluginList)
     {
         cout << ">>> Loading plugin <" << plugin << ">" << endl;
-        pluginSequence.push_back(PluginBaseFactory::CreateInstance(opts.GetOpt<string>(plugin+".pluginType")));
-        pluginSequence.back()->SetInstanceName(plugin);
-        pluginMap[plugin] = pluginSequence.back();
+        PluginBase* newPlugin = PluginBaseFactory::CreateInstance(opts.GetOpt<string>(plugin+".pluginType"));
+        if(newPlugin)
+        {
+            pluginSequence.push_back(newPlugin);
+            pluginSequence.back()->SetInstanceName(plugin);
+            pluginMap[plugin] = pluginSequence.back();
+        }
+        else
+        {
+            cout << ">>> ERROR: plugin type " << opts.GetOpt<string>(plugin+".pluginType") << " is not defined." << endl;
+            return 0;
+        }
     }
     
     //---begin
@@ -190,7 +200,7 @@ int main(int argc, char* argv[])
             }
         }
     }
-
+    
     //---close
     mainTree.Write();
     opts.Write("cfg");

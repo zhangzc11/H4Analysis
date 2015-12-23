@@ -31,7 +31,7 @@ public:
     ~PluginBase(){};    
 
     //---setters---
-    void SetInstanceName(string const& instance){instanceName_=instance;};    
+    void SetInstanceName(const string& instance){instanceName_=instance;};    
 
     //---getters---
     string             GetInstanceName(){return instanceName_;};
@@ -64,7 +64,7 @@ struct PluginBaseFactory
         {
             pluginsMap::iterator it = GetMap()->find(name);
             if(it == GetMap()->end())
-                return 0;
+                return NULL;           
             return it->second();
         }
 

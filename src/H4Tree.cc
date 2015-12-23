@@ -25,17 +25,17 @@ H4Tree::H4Tree(TChain* tree)
     tree_->GetEntry(0);
 
     //---ADC branches
-    adcBoard = new unsigned int[nAdcChannels]{0};
-    adcChannel = new unsigned int[nAdcChannels]{0};
-    adcData = new unsigned int[nAdcChannels]{0};
+    adcBoard = new unsigned int[nAdcChannels];
+    adcChannel = new unsigned int[nAdcChannels];
+    adcData = new unsigned int[nAdcChannels];
     tree_->SetBranchAddress("adcBoard", adcBoard);
     tree_->SetBranchAddress("adcChannel", adcChannel);
     tree_->SetBranchAddress("adcData", adcData);
 
     //---Wire chambers branches
     nTdcChannels = 0;
-    tdcChannel = new unsigned int[MAX_TDC_CHANNELS]{0};
-    tdcData = new unsigned int[MAX_TDC_CHANNELS]{0};
+    tdcChannel = new unsigned int[MAX_TDC_CHANNELS];
+    tdcData = new unsigned int[MAX_TDC_CHANNELS];
     tree_->SetBranchAddress("nTdcChannels", &nTdcChannels);
     tree_->SetBranchAddress("tdcChannel", tdcChannel);
     tree_->SetBranchAddress("tdcData", tdcData);
@@ -49,9 +49,9 @@ H4Tree::H4Tree(TChain* tree)
     tree_->SetBranchAddress("patternChannel", patternChannel);
 
     //---digitizer branches
-    digiGroup = new unsigned int[nDigiSamples]{0};
-    digiChannel = new unsigned int[nDigiSamples]{0};
-    digiSampleValue = new float[nDigiSamples]{0};
+    digiGroup = new unsigned int[nDigiSamples];
+    digiChannel = new unsigned int[nDigiSamples];
+    digiSampleValue = new float[nDigiSamples];
     tree_->SetBranchAddress("digiGroup", digiGroup);
     tree_->SetBranchAddress("digiChannel", digiChannel);
     tree_->SetBranchAddress("digiSampleValue", digiSampleValue);
