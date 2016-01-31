@@ -1,14 +1,14 @@
 CXX = g++
 CXXFLAGS = -std=c++1y -fPIC
 SOFLAGS = -shared -O3
-INCLUDE = -I"./"
-LIB = -L"$(pwd)/lib/"
+INCLUDE = -I"./" 
+LIB = -L"./lib/" -L"./DynamicTTree/lib" -Wl,-rpath=/home/pigo/Work/FastTiming/H4Analysis/DynamicTTree/lib/ -lDTT 
 
 ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
 
-
-DEPS = interface/CfgManager.h interface/CfgManagerT.h \
+DEPS = DynamicTTree/interface/DynamicTTreeBase.h DynamicTTree/interface/DynamicTTreeInterface.h \
+	interface/CfgManager.h interface/CfgManagerT.h \
 	interface/WFClass.h interface/WFClassNINO.h interface/WFViewer.h interface/MCPAnalyzer.h \
 	interface/RecoTree.h interface/DigiTree.h interface/WFTree.h interface/PositionTree.h interface/H4Tree.h 
 DEPS_OBJS = lib/CfgManager.o lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o lib/MCPAnalyzer.o \
@@ -23,7 +23,7 @@ DICT_OBJS = lib/CfgManager.o lib/WFViewer.o lib/MCPAnalyzer.o
 
 MAIN = bin/H4Reco
 
-all: $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
+all: dev $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
 
 lib/%.o: src/%.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
@@ -41,7 +41,11 @@ lib/H4Dict.so: lib/LinkDef.cxx $(DICT_OBJS)
 bin/%: main/%.cpp $(DEPS_OBJS) $(PLUG_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
+dev:
+	cd DynamicTTree && $(MAKE)
+
 clean:
 	rm -fr tmp/*
 	rm -fr lib/*
 	rm -fr bin/*
+	cd DynamicTTree && $(MAKE) clean

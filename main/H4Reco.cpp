@@ -8,7 +8,7 @@
 #include <string>
 
 #include "TFile.h"
-#include "TTree.h"
+#include "TChain.h"
 
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     //---events loop
     int maxEvents=opts.GetOpt<int>("h4reco.maxEvents");
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
-    while(h4Tree.NextEvt() && (index-stoul(run)*1e9<maxEvents || maxEvents==-1))
+    while(h4Tree.NextEntry() && (index-stoul(run)*1e9<maxEvents || maxEvents==-1))
     {
         if(index % 1000 == 0)
         {

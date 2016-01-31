@@ -5,8 +5,7 @@
 #include <map>
 #include <string>
 
-#include "TChain.h"
-#include "TString.h"
+#include "DynamicTTree/interface/DynamicTTreeBase.h"
 
 using namespace std;
 
@@ -17,43 +16,55 @@ typedef unsigned long long int uint64;
  
 //****************************************************************************************
 //----------Tree reader class-------------------------------------------------------------
-class H4Tree
+#define DYNAMIC_TREE_NAME H4TreeBase
+
+#define DATA_TABLE                              \
+    DATA(uint64,        evtTimeStart)           \
+    DATA(unsigned int,  runNumber)              \
+    DATA(unsigned int,  spillNumber)            \
+    DATA(unsigned int,  evtNumber)              \
+    DATA(unsigned int,  nAdcChannels)           \
+    DATA(unsigned int,  nTdcChannels)           \
+    DATA(unsigned int,  nPatterns)              \
+    DATA(unsigned int,  nDigiSamples)               
+
+#define DATA_VECT_TABLE                                 \
+    DATA(unsigned int, adcBoard, nAdcChannels)          \
+    DATA(unsigned int, adcChannel, nAdcChannels)        \
+    DATA(unsigned int, adcData, nAdcChannels)           \
+    DATA(unsigned int, tdcChannel, nTdcChannels)        \
+    DATA(unsigned int, tdcData, nTdcChannels)           \
+    DATA(unsigned int, pattern, nPatterns)              \
+    DATA(unsigned int, patternBoard, nPatterns)         \
+    DATA(unsigned int, patternChannel, nPatterns)       \
+    DATA(unsigned int, digiGroup, nDigiSamples)         \
+    DATA(unsigned int, digiChannel, nDigiSamples)       \
+    DATA(float,        digiSampleValue, nDigiSamples)   
+
+#include "DynamicTTree/interface/DynamicTTreeInterface.h"
+
+class H4Tree : public H4TreeBase
 {
-public: 
-    //---ctors---
-    H4Tree() {};
-    H4Tree(TChain* tree);
-    //---dtor---
+public:
+    //---ctors
+    H4Tree(TChain* t):
+        H4TreeBase(t)
+        {
+            Init();
+        }
+    H4Tree(TTree* t):
+        H4TreeBase(t)
+        {
+            Init();
+        }    
+    //---dtor
     ~H4Tree();
-
-    //---utils---
-    inline uint64 GetEntries(){return tree_->GetEntries();}
-    bool          NextEvt(int64_t entry=-1);
-
-    TChain* tree_; 
-    int     currentEntry_;
     
-    uint64        evtTimeStart;
-    unsigned int  runNumber;
-    unsigned int  spillNumber;
-    unsigned int  evtNumber;
-    unsigned int  nAdcChannels;
-    unsigned int* adcBoard;
-    unsigned int* adcChannel;
-    unsigned int* adcData;
-    unsigned int  nTdcChannels;
-    unsigned int* tdcChannel;
-    unsigned int* tdcData;
-    unsigned int  nPatterns;
-    unsigned int* pattern;
-    unsigned int* patternBoard;
-    unsigned int* patternChannel;
-    unsigned int  nDigiSamples;
-    unsigned int* digiGroup;
-    unsigned int* digiChannel;
-    float*        digiSampleValue;
-
+    //---members
+    void Init();
+    uint64 GetEntries(){ return tree_->GetEntriesFast(); };
+    
     map<pair<int, int>, int> digiMap;
 };
-
+   
 #endif 

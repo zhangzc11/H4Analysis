@@ -1,60 +1,7 @@
 #include "interface/H4Tree.h"
 
-H4Tree::H4Tree(TChain* tree)
+void H4Tree::Init()
 {
-    tree_ = tree;
-    currentEntry_=-1;
-
-    //---global branches
-    evtTimeStart = 0;
-    runNumber = 0;
-    spillNumber = 0;
-    evtNumber =0;
-    tree_->SetBranchAddress("evtTimeStart", &evtTimeStart);
-    tree_->SetBranchAddress("runNumber", &runNumber);
-    tree_->SetBranchAddress("spillNumber", &spillNumber);
-    tree_->SetBranchAddress("evtNumber", &evtNumber);
-
-    //---size branches
-    nAdcChannels = 0;
-    nPatterns = 0;
-    nDigiSamples = 0;
-    tree_->SetBranchAddress("nAdcChannels", &nAdcChannels);
-    tree_->SetBranchAddress("nPatterns", &nPatterns);
-    tree_->SetBranchAddress("nDigiSamples", &nDigiSamples);
-    tree_->GetEntry(0);
-
-    //---ADC branches
-    adcBoard = new unsigned int[nAdcChannels];
-    adcChannel = new unsigned int[nAdcChannels];
-    adcData = new unsigned int[nAdcChannels];
-    tree_->SetBranchAddress("adcBoard", adcBoard);
-    tree_->SetBranchAddress("adcChannel", adcChannel);
-    tree_->SetBranchAddress("adcData", adcData);
-
-    //---Wire chambers branches
-    nTdcChannels = 0;
-    tdcChannel = new unsigned int[MAX_TDC_CHANNELS];
-    tdcData = new unsigned int[MAX_TDC_CHANNELS];
-    tree_->SetBranchAddress("nTdcChannels", &nTdcChannels);
-    tree_->SetBranchAddress("tdcChannel", tdcChannel);
-    tree_->SetBranchAddress("tdcData", tdcData);
-
-    //---Pattern branches
-    pattern = new unsigned int[nPatterns];
-    patternBoard = new unsigned int[nPatterns];
-    patternChannel = new unsigned int[nPatterns];
-    tree_->SetBranchAddress("pattern", pattern);
-    tree_->SetBranchAddress("patternBoard", patternBoard);
-    tree_->SetBranchAddress("patternChannel", patternChannel);
-
-    //---digitizer branches
-    digiGroup = new unsigned int[nDigiSamples];
-    digiChannel = new unsigned int[nDigiSamples];
-    digiSampleValue = new float[nDigiSamples];
-    tree_->SetBranchAddress("digiGroup", digiGroup);
-    tree_->SetBranchAddress("digiChannel", digiChannel);
-    tree_->SetBranchAddress("digiSampleValue", digiSampleValue);
     //---fill map< <group, channel>, pointer to first sample>
     tree_->GetEntry(0);
     int currentDigiGroup=-1, currentDigiChannel=-1;
@@ -80,20 +27,4 @@ H4Tree::~H4Tree()
     delete[] digiGroup;
     delete[] digiChannel;
     delete[] digiSampleValue;
-}
-
-bool H4Tree::NextEvt(int64_t entry)
-{
-    if(entry > -1)
-        currentEntry_ = entry;
-    
-    ++currentEntry_;    
-    if(currentEntry_ < tree_->GetEntries())
-    {
-        tree_->GetEntry(currentEntry_);
-        return true;
-    }
-    
-    currentEntry_=-1;
-    return false;
 }
