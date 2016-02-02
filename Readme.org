@@ -3,6 +3,14 @@
     acquired with the H4DAQ mainly with the CAEN V1742 Digitizer
   - The main program is the H4Reco ntuples producer which can be easily
     configured through the input cfg file (examples in cfg/).
+** Install and run
+   =git clone --recursive https://github.com/simonepigazzini/H4Analysis.git=
+
+   =cd H4Analysis=
+
+   =make=
+
+   =bin/H4Reco cfg/Oct2015_timing.cfg 4443=
 ** The cfg file
    - Comment lines start with a '#' followed by a space
    - blocks are defined within =<block>...</block>=
@@ -13,6 +21,7 @@
 ** The H4Reco dumper
    - The main executable.
    - The idea is to run multiple plugins, each dedicated to a specific task, i.e. reconstructing hodoscope hits, digitizer waveform.
+   - H4Reco takes two arguments: a cfg file and the run number that overrides the one specified in the cfg file
    - Each Plugin has three methods that are called by the main program:
      + =Begin()=: is called once after the plugin instance is created and before the first
        event is processed. Takes two arguments: a =CfgManeger= with all the option loaded in H4Reco
