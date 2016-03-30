@@ -1,7 +1,7 @@
 #ifndef __INFO_TREE_MAKER__
 #define __INFO_TREE_MAKER__
 
-#include "plugins/PluginBase.h"
+#include "interface/PluginBase.h"
 
 class InfoTreeMaker: public PluginBase
 {
@@ -22,10 +22,7 @@ private:
     TTree*  info_tree_;
     string                           trackedVariable_;
     map<string, float*>              mappedVariables_;
-    map<string, map<string, float> > remap_;
-    
-    //---datamember for registration
-    PLUGIN_REGISTER(InfoTreeMaker)
+    map<string, map<string, float> > remap_;    
 };
 
 DEFINE_PLUGIN(InfoTreeMaker);

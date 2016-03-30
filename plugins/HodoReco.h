@@ -1,7 +1,7 @@
 #ifndef __HODO_RECO__
 #define __HODO_RECO__
 
-#include "PluginBase.h"
+#include "interface/PluginBase.h"
 #include "interface/PositionTree.h"
 
 #define HODO_X1 0
@@ -30,12 +30,8 @@ private:
     std::vector<int> hodoFiberOrderA_;
     std::vector<int> hodoFiberOrderB_;
     PositionTree     hodoTree_;
-
-    //---datamember for registration
-    PLUGIN_REGISTER(HodoReco)
 };
 
 DEFINE_PLUGIN(HodoReco);
-
 
 #endif

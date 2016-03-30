@@ -6,7 +6,7 @@
 #include "TH2F.h"
 
 #include "interface/WFClass.h"
-#include "plugins/PluginBase.h"
+#include "interface/PluginBase.h"
 
 class MakeCovarianceMatrix: public PluginBase
 {
@@ -33,9 +33,6 @@ private:
     map<string, vector<float> >            sums_;
     map<string, vector<float> >            sum2s_;
     map<string, map<int, vector<float> > > values_;
-
-    //---datamember for registration
-    PLUGIN_REGISTER(MakeCovarianceMatrix);
 };
 
 DEFINE_PLUGIN(MakeCovarianceMatrix);

@@ -1,4 +1,4 @@
-#include "PluginBase.h"
+#include "interface/PluginBase.h"
 
 //**********Getters***********************************************************************
 vector<SharedData> PluginBase::GetSharedData(string tag, string type, bool permanent)

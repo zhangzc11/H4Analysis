@@ -12,11 +12,9 @@
 
 #include "interface/CfgManager.h"
 #include "interface/CfgManagerT.h"
+#include "interface/PluginLoader.h"
 #include "interface/RecoTree.h"
-#include "plugins/PluginBase.h"
-
-typedef map<string, PluginBase*(*)()> pluginsMap;
-pluginsMap* PluginBaseFactory::map_;
+#include "interface/PluginBase.h"
 
 //----------Simple function to track memory and CPU usage---------------------------------
 void TrackProcess(float* cpu, float* mem, float* vsz, float* rss)
@@ -119,14 +117,22 @@ int main(int argc, char* argv[])
     RecoTree mainTree(&index);
 
     //---Get plugin sequence---
+    PluginLoader<PluginBase>* loader;
+    vector<PluginLoader<PluginBase>* > pluginLoaders;    
     map<string, PluginBase*> pluginMap;
     vector<PluginBase*> pluginSequence;
     vector<string> pluginList = opts.GetOpt<vector<string> >("h4reco.pluginList");    
     //---plugin creation
+    pluginLoaders.reserve(pluginList.size());
     for(auto& plugin : pluginList)
     {
         cout << ">>> Loading plugin <" << plugin << ">" << endl;
-        PluginBase* newPlugin = PluginBaseFactory::CreateInstance(opts.GetOpt<string>(plugin+".pluginType"));
+        //---create loader 
+        loader = new PluginLoader<PluginBase>(opts.GetOpt<string>(plugin+".pluginType"));
+        pluginLoaders.push_back(loader);
+        pluginLoaders.back()->Create();
+        //---get instance and put it in the plugin sequence   
+        PluginBase* newPlugin = pluginLoaders.back()->CreateInstance();
         if(newPlugin)
         {
             pluginSequence.push_back(newPlugin);
@@ -139,7 +145,7 @@ int main(int argc, char* argv[])
             return 0;
         }
     }
-    
+
     //---begin
     for(auto& plugin : pluginSequence)
     {
@@ -205,6 +211,10 @@ int main(int argc, char* argv[])
     mainTree.Write();
     opts.Write("cfg");
     outROOT->Close();
+    for(auto& loader : pluginLoaders)
+        loader->Destroy();
+
+    //---info
     TrackProcess(cpu, mem, vsz, rss);
 
     exit(0);

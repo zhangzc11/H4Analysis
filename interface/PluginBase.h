@@ -53,46 +53,8 @@ protected:
     vector<SharedData> data_;
 };
 
-//**********REFLECTION********************************************************************
-template<typename T> PluginBase* CreatePlugin() { return new T; }
-
-struct PluginBaseFactory
-{
-    typedef map<string, PluginBase*(*)()> pluginsMap;
-
-    static PluginBase* CreateInstance(string const& name)
-        {
-            pluginsMap::iterator it = GetMap()->find(name);
-            if(it == GetMap()->end())
-                return NULL;           
-            return it->second();
-        }
-
-protected:
-    static pluginsMap* GetMap()
-        {
-            if(!map_)
-                map_ = new pluginsMap;
-            return map_;
-        }
-
-private:
-    static pluginsMap* map_;
-};
-
-template<typename T>
-struct PluginRegister : PluginBaseFactory
-{
-    PluginRegister(string const& name)
-        {
-            GetMap()->insert(make_pair(name, &CreatePlugin<T>));
-        }
-};
-
-#define PLUGIN_REGISTER(NAME) \
-    static PluginRegister<NAME> registry;
-
 #define DEFINE_PLUGIN(NAME) \
-    PluginRegister<NAME> NAME::registry(#NAME)
+    extern "C" PluginBase* create() {return new NAME;} \
+    extern "C" void destroy(PluginBase* plugin) {delete plugin;}
 
 #endif

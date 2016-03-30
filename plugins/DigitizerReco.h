@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "plugins/PluginBase.h"
+#include "interface/PluginBase.h"
 #include "interface/DigiTree.h"
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"
@@ -34,9 +34,6 @@ private:
     map<string, WFClass*>       WFs;
     map<string, WFViewer>       WFViewers;
     map<string, TH1*>           templates;
-
-    //---datamember for registration
-    PLUGIN_REGISTER(DigitizerReco)
 };
 
 DEFINE_PLUGIN(DigitizerReco);
