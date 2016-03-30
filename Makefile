@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++1y -fPIC
 SOFLAGS = -shared -O3
 INCLUDE = -I"./" 
-LIB = -L"./lib/" -L"./DynamicTTree/lib" -L"./CfgManager/lib" -Wl,-rpath=DynamicTTree/lib/:CfgManager/lib/ -lDTT 
+LIB = -L"./lib/" -L"./DynamicTTree/lib" -L"./CfgManager/lib" -Wl,-rpath=lib/:DynamicTTree/lib/:CfgManager/lib/ -lDTT 
 
 ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
@@ -40,6 +40,8 @@ lib/H4Dict.so: lib/LinkDef.cxx $(DICT_OBJS)
 
 bin/%: main/%.cpp $(DEPS_OBJS) interface/PluginLoader.h CfgManager/lib/CfgManagerDict.so
 	$(CXX) $(CXXFLAGS) -ldl -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+
+CfgManager/lib/CfgManagerDict.so: cfgManager
 
 dynamicTree:
 	cd DynamicTTree && $(MAKE)
