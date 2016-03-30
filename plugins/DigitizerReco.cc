@@ -36,14 +36,14 @@ bool DigitizerReco::Begin(CfgManager& opts, uint64* index)
     }
     
     //---outputs---
-    string recoTreeName = opts.GetOpt(instanceName_+".recoTreeName") ?
+    string recoTreeName = opts.OptExist(instanceName_+".recoTreeName") ?
         opts.GetOpt<string>(instanceName_+".recoTreeName") : "reco";
     RegisterSharedData(new TTree(recoTreeName.c_str(), "reco_tree"), "reco_tree", true);
     recoTree_ = DigiTree(index, (TTree*)data_.back().obj);
     recoTree_.Init(channelsNames_);
     if(opts.GetOpt<int>(instanceName_+".fillWFtree"))
     {
-        string wfTreeName = opts.GetOpt(instanceName_+".wfTreeName") ?
+        string wfTreeName = opts.OptExist(instanceName_+".wfTreeName") ?
             opts.GetOpt<string>(instanceName_+".wfTreeName") : "wf";
         RegisterSharedData(new TTree(wfTreeName.c_str(), "wf_tree"), "wf_tree", true);
         outWFTree_ = WFTree(channelsNames_.size(), nSamples_, index, (TTree*)data_.back().obj);
@@ -97,7 +97,7 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
     for(auto& channel : channelsNames_)
     {
         //---subtract a specified channel if requested
-        if(opts.GetOpt(channel+".subtractChannel"))
+        if(opts.OptExist(channel+".subtractChannel"))
             *WFs[channel] -= *WFs[opts.GetOpt<string>(channel+".subtractChannel")];        
         WFs[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
                                         opts.GetOpt<int>(channel+".baselineWin", 1));

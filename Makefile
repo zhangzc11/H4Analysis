@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++1y -fPIC
 SOFLAGS = -shared -O3
 INCLUDE = -I"./" 
-LIB = -L"./lib/" -L"./DynamicTTree/lib" -Wl,-rpath=DynamicTTree/lib/:CfgManager/lib/ -lDTT -lCFGMan
+LIB = -L"./lib/" -L"./DynamicTTree/lib" -L"./CfgManager/lib" -Wl,-rpath=DynamicTTree/lib/:CfgManager/lib/ -lDTT 
 
 ROOT_LIB := `root-config --libs --glibs`
 ROOT_FLAGS := `root-config --cflags --ldflags` -lMathCore -lMathMore
@@ -20,7 +20,7 @@ PLUG_DEPS = plugins/DigitizerReco.h plugins/MakeCovarianceMatrix.h \
 PLUG_OBJS = lib/libDigitizerReco.so lib/libMakeCovarianceMatrix.so \
 	lib/libHodoReco.so lib/libHodoBTFReco.so lib/libWireChamberReco.so \
 	lib/libInfoTreeMaker.so
-DICT_OBJS = lib/CfgManager.o lib/WFViewer.o lib/MCPAnalyzer.o
+DICT_OBJS = lib/WFViewer.o lib/MCPAnalyzer.o
 
 MAIN = bin/H4Reco
 
@@ -30,15 +30,15 @@ lib/%.o: src/%.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
 lib/lib%.so: plugins/%.cc $(PLUG_DEPS)
-	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
+	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
-lib/LinkDef.cxx: interface/CfgManager.h interface/WFViewer.h interface/MCPAnalyzer.h interface/LinkDef.h 
+lib/LinkDef.cxx: interface/WFViewer.h interface/MCPAnalyzer.h interface/LinkDef.h 
 	rootcling -f $@ -c $^
 
 lib/H4Dict.so: lib/LinkDef.cxx $(DICT_OBJS)
 	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
-bin/%: main/%.cpp $(DEPS_OBJS) interface/PluginLoader.h 
+bin/%: main/%.cpp $(DEPS_OBJS) interface/PluginLoader.h CfgManager/lib/CfgManagerDict.so
 	$(CXX) $(CXXFLAGS) -ldl -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
 dynamicTree:
@@ -52,3 +52,4 @@ clean:
 	rm -fr lib/*
 	rm -fr bin/*
 	cd DynamicTTree && $(MAKE) clean
+	cd CfgManager && $(MAKE) clean

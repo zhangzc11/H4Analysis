@@ -10,8 +10,9 @@
 #include "TFile.h"
 #include "TChain.h"
 
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "CfgManager/interface/CfgManager.h"
+#include "CfgManager/interface/CfgManagerT.h"
+
 #include "interface/PluginLoader.h"
 #include "interface/RecoTree.h"
 #include "interface/PluginBase.h"
@@ -170,6 +171,7 @@ int main(int argc, char* argv[])
                  << endl;
             TrackProcess(cpu, mem, vsz, rss);
         }
+
         //---call ProcessEvent for each plugin
         for(auto& plugin : pluginSequence)
             plugin->ProcessEvent(h4Tree, pluginMap, opts);
@@ -179,7 +181,7 @@ int main(int argc, char* argv[])
         mainTree.run = h4Tree.runNumber;
         mainTree.spill = h4Tree.spillNumber;
         mainTree.event = h4Tree.evtNumber;
-        mainTree.Fill();        
+        mainTree.Fill();
         ++index;
     }
 

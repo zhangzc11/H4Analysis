@@ -6,8 +6,8 @@
 
 #include "TObject.h"
 
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "CfgManager/interface/CfgManager.h"
+#include "CfgManager/interface/CfgManagerT.h"
 #include "interface/H4Tree.h"
 
 using namespace std;
