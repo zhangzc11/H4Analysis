@@ -115,6 +115,7 @@ int main(int argc, char* argv[])
     //-----output setup-----
     uint64 index=stoul(run)*1e9;
     TFile* outROOT = new TFile("ntuples/"+outSuffix+TString(run)+".root", "RECREATE");
+    outROOT->cd();
     RecoTree mainTree(&index);
 
     //---Get plugin sequence---
