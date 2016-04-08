@@ -17,13 +17,18 @@ public:
 
     //---utils---
     bool Begin(CfgManager& opts, uint64* index);
-    bool ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts);
+    bool ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plugins, CfgManager& opts);
     
 private:
-    map<int, int> ADC_to_PMT_map_;
-    map<int, int> PMT_to_hodoX_map_;
-    map<int, int> PMT_to_hodoY_map_;
+    map<int, int> ADC_to_PMT_map;
+    map<int, int> PMT_to_hodoX_map;
+    map<int, int> PMT_to_hodoY_map;
     PositionTree  hodoTree_;
+
+    int hodoXpos;
+    int hodoYpos;
+    unsigned int nAdcChannels;
+    unsigned int adcData[100], adcBoard[100], adcChannel[100];    
 };
 
 DEFINE_PLUGIN(HodoBTFReco);

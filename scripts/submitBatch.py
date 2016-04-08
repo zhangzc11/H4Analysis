@@ -79,7 +79,7 @@ if __name__ == '__main__':
     stageOutDir = args.storage+'ntuples_'+args.version+'/'
     
     if args.batch == 'lxbatch':
-        if getoutput('gfal-ls root://eoscms/'+eosdir) == "":
+        if getoutput('gfal-ls root://eoscms/'+stageOutDir) == "":
             print "ntuples version "+args.version+" directory on eos already exist! no jobs created."
             exit(0)
         getstatusoutput('cmsMkdir '+stageOutDir)    
