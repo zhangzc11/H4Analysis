@@ -23,7 +23,8 @@ def lxbatchSubmitJob (run, path, cfg, eosdir, queue, job_dir, dryrun):
     jobname = job_dir+'/H4Reco_'+queue+'_'+run+'.sh'
     f = open (jobname, 'w')
     f.write ('#!/bin/sh' + '\n\n')
-    f.write ('git clone https://github.com/simonepigazzini/H4Analysis.git \n')
+    f.write ('export X509_USER_PROXY=/afs/cern.ch/user/s/spigazzi/x509up_u68758 \n\n')
+    f.write ('git clone --recursive https://github.com/simonepigazzini/H4Analysis.git \n')
     f.write ('cd H4Analysis/ \n')
     f.write ('source scripts/setup.sh \n')
     f.write ('make -j 2 \n')
