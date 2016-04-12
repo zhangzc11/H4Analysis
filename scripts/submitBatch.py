@@ -19,7 +19,7 @@ def get_comma_separated_args(self, arg_line):
 
 # ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
-def lxbatchSubmitJob (run, path, cfg, eosdir, queue, job_dir, dryrun):
+def lxbatchSubmitJob (run, path, cfg, outdir, queue, job_dir, dryrun):
     jobname = job_dir+'/H4Reco_'+queue+'_'+run+'.sh'
     f = open (jobname, 'w')
     f.write ('#!/bin/sh' + '\n\n')
@@ -31,7 +31,10 @@ def lxbatchSubmitJob (run, path, cfg, eosdir, queue, job_dir, dryrun):
     f.write ('cp '+path+cfg+' job.cfg \n\n')
     f.write ('cp '+path+'/ntuples/Template*.root ./ntuples/ \n\n')
     f.write ('bin/H4Reco job.cfg '+run+'\n\n')
-    f.write ('cmsStage -f ntuples/*'+run+'.root '+eosdir+'\n')
+    if "/eos/cms/" in outdir:
+        f.write ('cmsStage -f ntuples/*'+run+'.root '+outdir+'\n')
+    else:
+        f.write ('cp ntuples/*'+run+'.root '+outdir+'\n')
     f.close ()
     getstatusoutput ('chmod 755 ' + jobname)
     if not dryrun:
