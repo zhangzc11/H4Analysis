@@ -62,6 +62,9 @@ void ReadInputFiles(CfgManager& opts, TChain* inTree)
     //---Get file list searching in specified path (eos or locally)
     if(path.find("/eos/cms") != string::npos)
         ls_command = string("gfal-ls root://eoscms/"+path+run+" | grep 'root' > tmp/"+run+".list");
+    else if(path.find("srm://") != string::npos)
+        ls_command = string("lcg-ls "+path+run+
+                            " | sed -e 's:^.*\\/cms\\/:root\\:\\/\\/xrootd-cms.infn.it\\/\\/:g' | grep 'root' > tmp/"+run+".list");
     else
         ls_command = string("ls "+path+run+" | grep 'root' > tmp/"+run+".list");
     system(ls_command.c_str());
@@ -72,6 +75,11 @@ void ReadInputFiles(CfgManager& opts, TChain* inTree)
         {
             std::cout << "+++ Adding file " << ("root://eoscms/"+path+run+"/"+file).c_str() << std::endl;
             inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
+        }
+        else if(path.find("srm://") != string::npos)
+        {
+            std::cout << "+++ Adding file " << file << std::endl;
+            inTree->AddFile((file).c_str());
         }
         else
         {
