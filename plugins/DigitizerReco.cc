@@ -87,8 +87,11 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         {
             //---H4DAQ bug: sometimes ADC value is out of bound.
             //---skip everything if one channel is bad
-            if(event.digiSampleValue[iSample] > 4096)
+            if(event.digiSampleValue[iSample] > 10000)
+            {
+                cout << ">>>DigiReco WARNING: skipped event" << endl;
                 return false;
+            }
             WFs[channel]->AddSample(event.digiSampleValue[iSample]);
         }
     }
