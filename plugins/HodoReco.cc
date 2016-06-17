@@ -110,13 +110,14 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
                 bool thisfibon = (h4Tree.pattern[i]>>j)&0b1;
                 hodoFiberOn[pos][fiberorder->at(j)-1] = thisfibon;
                 if(thisfibon) fibersOn[pos].push_back(fiberorder->at(j)-1);
+
             }
         }
     }
   
-    for(int i=0; i<nPlanes_; ++i)
+    for(int i=0; i<nPlanes_*2; ++i)
     {
-        float value=-999;
+      float value=-999;
         if(fibersOn[i].size() == 1)
             value = 0.5 * (fibersOn[i].at(0) - 32.);
         else if(fibersOn[i].size() == 2)
