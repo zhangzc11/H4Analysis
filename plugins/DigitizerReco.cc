@@ -131,6 +131,14 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
             recoTree_.fit_time[outCh] = fitResults.time;
             recoTree_.fit_chi2[outCh] = fitResults.chi2;
         }            
+	//---calibration constant for each channel if needed
+	if(opts.OptExist(channel+".calibration.calibrationConst"))
+	  recoTree_.calibration[outCh]=opts.GetOpt<float>(channel+".calibration.calibrationConst");
+	else
+	  recoTree_.calibration[outCh]=1;
+	
+
+
         //---WFs---
         if(fillWFtree)
         {
