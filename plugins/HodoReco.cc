@@ -137,10 +137,13 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
             if(fabs(vals.at(1)-vals.at(0)) == 1 && fabs(vals.at(2)-vals.at(1)) == 1) 
                 value = 0.5 * (vals.at(1) - 32.);
         }
-        if(i%2 == 0)
-            hodoTree_.X[i/nPlanes_] = value;
-        else
-            hodoTree_.Y[i/nPlanes_] = value;
+        if(i%2 == 0){
+	  hodoTree_.X[i/nPlanes_] = value;
+	  hodoTree_.nFibresOnX[i/nPlanes_] = fibersOn[i].size();
+	}else{
+	  hodoTree_.Y[i/nPlanes_] = value;
+	  hodoTree_.nFibresOnY[i/nPlanes_] = fibersOn[i].size();
+	}
     }
     //---fill output tree
     hodoTree_.Fill();
