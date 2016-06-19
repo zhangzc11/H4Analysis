@@ -91,7 +91,7 @@ for entry in tree:
     matrixEn=0
     for xtal in xtalMatrix:
 #        print xtal
-        matrixEn+=entry.charge_sig[xtal]
+        matrixEn+=entry.charge_sig[xtal]*entry.calibration[xtal]
     hmatrix_hodosel_3x3_matrix.Fill(matrixEn)
 
 outfile.Write()
