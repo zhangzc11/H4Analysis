@@ -59,14 +59,22 @@ htot_hodosel_3x3_calib=ROOT.TH1F("chint_4apd_hodosel_3x3_calib","chint_4apd_hodo
 htot_hodosel_3x3_calib.SetLineColor(ROOT.kBlack)
 
 hmatrix_hodosel_3x3_matrix=ROOT.TH1F("chint_matrix_hodosel_3x3","chint_matrix_hodosel_3x3",4*300,0,60000*4);
-htot_hodosel_3x3.SetLineColor(ROOT.kBlack)
+hmatrix_hodosel_3x3_matrix.SetLineColor(ROOT.kBlack)
+
+#xtal 11
+
+h1_xtal11_hodosel_3x3=ROOT.TH1F("chint_xtal11_hodosel_3x3","chint_xtal11_hodosel_3x3",300,0,60000);
+
+hmatrix_xtal11_hodosel_3x3_matrix=ROOT.TH1F("chint_xtal11_matrix_hodosel_3x3","chint_xtal11_matrix_hodosel_3x3",4*300,0,60000*4);
+hmatrix_xtal11_hodosel_3x3_matrix.SetLineColor(ROOT.kBlack)
 
 
 for entry in tree:
 #    print entry.event
     if entry.event == 1:
-        #define here the xtals for a 3x3 matrix
-        xtalMatrix = array.array('i',[tree.xtal1,tree.xtal2,tree.xtal3,tree.xtal6,tree.xtal4apd_1,tree.xtal4apd_2,tree.xtal4apd_3,tree.xtal4apd_4,tree.xtal11,tree.xtal14,tree.xtal15,tree.xtal16])
+        #define here the xtals for a 3x3 matrixs, centered in two different xtals
+        xtalMatrix4APD = array.array('i',[tree.xtal1,tree.xtal2,tree.xtal3,tree.xtal6,tree.xtal4apd_1,tree.xtal4apd_2,tree.xtal4apd_3,tree.xtal4apd_4,tree.xtal11,tree.xtal14,tree.xtal15,tree.xtal16])
+        xtalMatrixXtal11 = array.array('i',[tree.xtal11,tree.xtal2,tree.xtal3,tree.xtal4,tree.xtal4apd_1,tree.xtal4apd_2,tree.xtal4apd_3,tree.xtal4apd_4,tree.xtal12,tree.xtal15,tree.xtal16,tree.xtal17])
 
     h1.Fill(entry.charge_sig[entry.xtal4apd_1])
     if (entry.X[0]<-10 or entry.Y[0]<-10 or entry.X[1]<-10 or entry.Y[1]<-10):#hodo not reconstructed
@@ -88,11 +96,21 @@ for entry in tree:
 
     htot_hodosel_3x3.Fill(entry.charge_sig[entry.xtal4apd_1]+entry.charge_sig[entry.xtal4apd_2]+entry.charge_sig[entry.xtal4apd_3]+entry.charge_sig[entry.xtal4apd_4])
     htot_hodosel_3x3_calib.Fill(entry.charge_sig[entry.xtal4apd_1]*entry.calibration[entry.xtal4apd_1]+entry.charge_sig[entry.xtal4apd_2]*entry.calibration[entry.xtal4apd_2]+entry.charge_sig[entry.xtal4apd_3]*entry.calibration[entry.xtal4apd_3]+entry.charge_sig[entry.xtal4apd_4]*entry.calibration[entry.xtal4apd_4])
+
+    h1_xtal11_hodosel_3x3.Fill(entry.charge_sig[entry.xtal11])
+
     matrixEn=0
-    for xtal in xtalMatrix:
+    matrixEnXtal11=0
+    for xtal in xtalMatrix4APD:
 #        print xtal
         matrixEn+=entry.charge_sig[xtal]*entry.calibration[xtal]
     hmatrix_hodosel_3x3_matrix.Fill(matrixEn)
+
+    for xtal in xtalMatrixXtal11:
+#        print xtal
+        matrixEnXtal11+=entry.charge_sig[xtal]*entry.calibration[xtal]
+    hmatrix_xtal11_hodosel_3x3_matrix.Fill(matrixEnXtal11)
+
 
 outfile.Write()
 outfile.Close()
