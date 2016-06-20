@@ -110,14 +110,19 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
                 bool thisfibon = (h4Tree.pattern[i]>>j)&0b1;
                 hodoFiberOn[pos][fiberorder->at(j)-1] = thisfibon;
                 if(thisfibon) fibersOn[pos].push_back(fiberorder->at(j)-1);
+
             }
         }
     }
   
-    for(int i=0; i<nPlanes_; ++i)
+    for(int i=0; i<nPlanes_*2; ++i)
     {
-        float value=-999;
-        if(fibersOn[i].size() == 1)
+      float value=-999;
+      float offset=0;
+      if(opts.OptExist(instanceName_+".hodoCorrection.hodoAlignOffset",i)){
+	offset=opts.GetOpt<float>("H4Hodo.hodoCorrection.hodoAlignOffset",i);
+      } 
+       if(fibersOn[i].size() == 1)
             value = 0.5 * (fibersOn[i].at(0) - 32.);
         else if(fibersOn[i].size() == 2)
         {
@@ -136,10 +141,13 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
             if(fabs(vals.at(1)-vals.at(0)) == 1 && fabs(vals.at(2)-vals.at(1)) == 1) 
                 value = 0.5 * (vals.at(1) - 32.);
         }
-        if(i%2 == 0)
-            hodoTree_.X[i/nPlanes_] = value;
-        else
-            hodoTree_.Y[i/nPlanes_] = value;
+        if(i%2 == 0){
+	  hodoTree_.X[i/nPlanes_] = value + offset;
+	  hodoTree_.nFibresOnX[i/nPlanes_] = fibersOn[i].size();
+	}else{
+	  hodoTree_.Y[i/nPlanes_] = value + offset;
+	  hodoTree_.nFibresOnY[i/nPlanes_] = fibersOn[i].size();
+	}
     }
     //---fill output tree
     hodoTree_.Fill();

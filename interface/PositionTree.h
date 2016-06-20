@@ -30,6 +30,8 @@ public:
     int     n_planes;
     float*  X;
     float*  Y;
+    int*  nFibresOnX;
+    int*  nFibresOnY;
 };
 
 #endif
