@@ -9,9 +9,19 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 sys.argv = oldargv
 
+# ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+class customAction(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        setattr(args, self.dest, values.split(','))
+
+def get_comma_separated_args(self, arg_line):
+    return arg_line.split(',')
+
+# ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
 # Load the CalibrationFile format
 ROOT.gSystem.Load("lib/H4Dict.so")
-#ROOT.AutoLibraryLoader.enable()
 
 trees={}
 mergedFile = ROOT.TFile(sys.argv[1], "RECREATE")
@@ -38,7 +48,7 @@ for filename in sys.argv[2:]:
         trees[tree_name].AddFile(filename)
 
 for tree_name in trees:
-    if tree_name == "h4":
+    if tree_name == "h4" or tree_name == "wf":
         continue
     mergedFile.cd()
     trees[tree_name].Merge(mergedFile, 0, "keep")

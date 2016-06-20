@@ -12,7 +12,7 @@ bool WireChamberReco::Begin(CfgManager& opts, uint64* index)
     
     //---create a position tree
     RegisterSharedData(new TTree("wire", "wire_tree"), "wire_tree", true);
-    wireTree_ = PositionTree(index, (TTree*)data_.back().obj, 1);
+    wireTree_ = PositionTree(index, (TTree*)data_.back().obj);
     wireTree_.Init();
     
     return true;
@@ -37,15 +37,15 @@ bool WireChamberReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*
 
     //---compute X and Y from channels times
     if(timeR.size()!=0 && timeL.size()!=0)
-        wireTree_.X[0] = (*min_element(timeR.begin(), timeR.begin()+timeR.size()) -
-                  *min_element(timeL.begin(), timeL.begin()+timeL.size()))*0.005;
+        wireTree_.X[0].push_back((*min_element(timeR.begin(), timeR.begin()+timeR.size()) -
+                                      *min_element(timeL.begin(), timeL.begin()+timeL.size()))*0.005);
     else
-        wireTree_.X[0] = -1000;
+        wireTree_.X[0].push_back(-1000);
     if(timeU.size()!=0 && timeD.size()!=0)
-        wireTree_.Y[0] = (*min_element(timeU.begin(), timeU.begin()+timeU.size()) -
-                  *min_element(timeD.begin(), timeD.begin()+timeD.size()))*0.005;
+        wireTree_.Y[0].push_back((*min_element(timeU.begin(), timeU.begin()+timeU.size()) -
+                                      *min_element(timeD.begin(), timeD.begin()+timeD.size()))*0.005);
     else
-        wireTree_.Y[0] = -1000;
+        wireTree_.Y[0].push_back(-1000);
 
     //---fill output tree
     wireTree_.Fill();
