@@ -47,6 +47,7 @@ public:
     float*        fit_time;
     float*        fit_chi2;
     int*          channels;
+    float*        calibration;
 };
 
 #endif
