@@ -19,7 +19,10 @@ void DigiTree::Init(vector<string>& names)
     time = new float[n_channels];
     time_chi2 = new float[n_channels];
     maximum = new float[n_channels];
+    time_maximum = new float[n_channels];
     amp_max = new float[n_channels];
+    time_max = new float[n_channels];
+    chi2_max = new float[n_channels];
     charge_tot = new float[n_channels];
     charge_sig = new float[n_channels];
     fit_ampl = new float[n_channels];
@@ -43,7 +46,10 @@ void DigiTree::Init(vector<string>& names)
     tree_->Branch((prefix_+"time").c_str(), time, (prefix_+"time["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"time_chi2").c_str(), time_chi2, (prefix_+"time_chi2["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"maximum").c_str(), maximum, (prefix_+"maximum["+size_var+"]/F").c_str());
+    tree_->Branch((prefix_+"time_maximum").c_str(), time_maximum, (prefix_+"time_maximum["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"amp_max").c_str(), amp_max, (prefix_+"amp_max["+size_var+"]/F").c_str());
+    tree_->Branch((prefix_+"time_max").c_str(), time_max, (prefix_+"time_max["+size_var+"]/F").c_str());
+    tree_->Branch((prefix_+"chi2_max").c_str(), chi2_max, (prefix_+"chi2_max["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"charge_tot").c_str(), charge_tot, (prefix_+"charge_tot["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"charge_sig").c_str(), charge_sig, (prefix_+"charge_sig["+size_var+"]/F").c_str());
     tree_->Branch((prefix_+"fit_ampl").c_str(), fit_ampl, (prefix_+"fit_ampl["+size_var+"]/F").c_str());

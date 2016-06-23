@@ -37,14 +37,14 @@ float WFClass::GetAmpMax(int min, int max)
 }
 
 //----------Get the interpolated max/min amplitude wrt polarity---------------------------
-float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
+WFFitResults WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
 {
     //---check if already computed
     if(min==-1 && max==-1 && fitAmpMax_!=-1)
-        return fitAmpMax_;
+        return WFFitResults{fitAmpMax_, fitTimeMax_*tUnit_, fitChi2Max_};
     //---check if signal window is valid
     if(min==max && max==-1 && sWinMin_==sWinMax_ && sWinMax_==-1)
-        return -1;
+        return {-1, -1000, -1};
     //---setup signal window
     if(min!=-1 && max!=-1)
         SetSignalWindow(min, max);
@@ -63,9 +63,12 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
         h_max.SetBinError(bin, BaselineRMS());
         ++bin;
     }
-    h_max.Fit(&f_max, "QR");
-
-    return fitAmpMax_ = f_max.Eval(-f_max.GetParameter(1)/(2*f_max.GetParameter(2)));
+    auto fit_result = h_max.Fit(&f_max, "QRS");
+    fitTimeMax_ = -f_max.GetParameter(1)/(2*f_max.GetParameter(2));
+    fitAmpMax_ = f_max.Eval(fitTimeMax_);
+    fitChi2Max_ = fit_result->Chi2()/(nFitSamples-3);
+        
+    return WFFitResults{fitAmpMax_, fitTimeMax_*tUnit_, fitChi2Max_};
 }
 
 //----------Get time with the specified method--------------------------------------------
@@ -118,7 +121,7 @@ pair<float, float> WFClass::GetTimeCF(float frac, int nFitSamples, int min, int 
         if(fitAmpMax_ == -1)
             GetInterpolatedAmpMax(min, max);
         if(frac == 1) 
-            return make_pair(maxSample_, 1);
+            return make_pair(maxSample_*tUnit_, 1);
     
         //---find first sample above Amax*frac
         for(int iSample=maxSample_; iSample>tStart; --iSample)

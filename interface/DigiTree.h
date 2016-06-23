@@ -40,7 +40,10 @@ public:
     float*        time;
     float*        time_chi2;
     float*        maximum;
+    float*        time_maximum;
     float*        amp_max;
+    float*        time_max;
+    float*        chi2_max;
     float*        charge_tot;
     float*        charge_sig;
     float*        fit_ampl;

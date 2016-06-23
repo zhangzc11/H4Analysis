@@ -37,10 +37,13 @@
     + *charge_sig*: sum of WF samples inside a window defined in the cfg
     + *charge_tot*: sum of |WF samples| over the whole digitizer window.
 *** time:
+    + *time_maximum*: bare time of max sample
     + *time*: for normal WF is the time computed with a CFD method, in the process =amp_max= is used as 
       amplitude information. For *NINO* this variables is computed with a leading edge method
       (threshold set in the cfg, roughly ~40% of amp_max).
     + *time_chi2*: chi2/ndf of the linear interpolation used to reconstruct the time (both CFD and LED).
+    + *time_max*: time estimated from pol2 interpolation.
+    + *chi2_max*: chi2 of the pol2 interpolation.
     + *fit_time*: time extracted from the template fit.
     + *fit_chi2*: chi2/ndf of the template fit.
 *** hodo:

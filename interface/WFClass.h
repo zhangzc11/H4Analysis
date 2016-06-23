@@ -12,6 +12,7 @@
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
+#include "TFitResult.h"
 #include "TMath.h"
 #include "TH1F.h"
 #include "TF1.h"
@@ -49,7 +50,7 @@ public:
     inline vector<float>* GetSamples() {return &samples_;};
     inline float          GetBaseline() {return baseline_;}
     float                 GetAmpMax(int min=-1, int max=-1);
-    float                 GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
+    WFFitResults          GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
     pair<float, float>    GetTime(string method, vector<float>& params); 
     pair<float, float>    GetTimeCF(float frac, int nFitSamples=5, int min=-1, int max=-1);
     pair<float, float>    GetTimeLE(float thr, int nmFitSamples=1, int npFitSamples=3, int min=-1, int max=-1);
@@ -90,6 +91,8 @@ protected:
     int           bWinMax_;
     int           maxSample_;
     float         fitAmpMax_;
+    float         fitTimeMax_;
+    float         fitChi2Max_;
     float         baseline_;
     float         bRMS_;
     int           cfSample_;

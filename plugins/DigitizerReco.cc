@@ -107,6 +107,7 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         WFs[channel]->SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0)+timeRef, 
                                       opts.GetOpt<int>(channel+".signalWin", 1)+timeRef);
         WFBaseline baselineInfo = WFs[channel]->SubtractBaseline();
+        WFFitResults interpolAmpMax = WFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
         pair<float, float> timeInfo = WFs[channel]->GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts_[channel]);
         recoTree_.b_charge[outCh] = WFs[channel]->GetIntegral(opts.GetOpt<int>(channel+".baselineInt", 0), 
                                                              opts.GetOpt<int>(channel+".baselineInt", 1));        
@@ -115,7 +116,10 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         recoTree_.time[outCh] = timeInfo.first;
         recoTree_.time_chi2[outCh] = timeInfo.second;
         recoTree_.maximum[outCh] = WFs[channel]->GetAmpMax();
-        recoTree_.amp_max[outCh] = WFs[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
+        recoTree_.time_maximum[outCh] = WFs[channel]->GetTimeCF(1).first;
+        recoTree_.amp_max[outCh] = interpolAmpMax.ampl;
+        recoTree_.time_max[outCh] = interpolAmpMax.time;
+        recoTree_.chi2_max[outCh] = interpolAmpMax.chi2;
         recoTree_.charge_tot[outCh] = WFs[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
                                                                  nSamples_);
         recoTree_.charge_sig[outCh] = WFs[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
@@ -137,8 +141,6 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
 	else
 	  recoTree_.calibration[outCh]=1;
 	
-
-
         //---WFs---
         if(fillWFtree)
         {
