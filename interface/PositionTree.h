@@ -31,8 +31,8 @@ public:
     int n_planes;
     int n_hitsX;
     int n_hitsY;
-    vector<float>*  X;
-    vector<float>*  Y;
+    float* X;
+    float* Y;
 };
 
 #endif

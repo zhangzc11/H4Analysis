@@ -15,12 +15,12 @@ void PositionTree::Init()
 {
     //---global branches
     tree_->Branch("index", index, "index/l");
-    X = new vector<float>[n_planes];
-    Y = new vector<float>[n_planes];
+    X = new float[n_planes];
+    Y = new float[n_planes];
     //---position branches
     tree_->Branch("n_planes", &n_planes, "n_planes/I");
     tree_->Branch("n_hitsX", &n_hitsX, "n_hitsX/I");
     tree_->Branch("n_hitsY", &n_hitsY, "n_hitsY/I");
-    tree_->Branch("X", &X);
-    tree_->Branch("Y", &Y);
+    tree_->Branch("X", X, "X[n_planes]/F");
+    tree_->Branch("Y", Y, "Y[n_planes]/F");
 }

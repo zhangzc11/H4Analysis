@@ -115,8 +115,6 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
         }
     }
 
-    hodoTree_.X[0].clear();
-    hodoTree_.Y[0].clear();
     for(int i=0; i<nPlanes_*2; ++i)
     {
         float value=-999;
@@ -144,9 +142,9 @@ bool HodoReco::ProcessEvent(const H4Tree& h4Tree, map<string, PluginBase*>& plug
                 value = 0.5 * (vals.at(1) - 32.);
         }
         if(i%2 == 0)
-            hodoTree_.X[i/nPlanes_].push_back(value + offset);
+            hodoTree_.X[i/nPlanes_] = value + offset;
         else
-            hodoTree_.Y[i/nPlanes_].push_back(value + offset);
+            hodoTree_.Y[i/nPlanes_] = value + offset;
     }
     //---fill output tree
     hodoTree_.Fill();
