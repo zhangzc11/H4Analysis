@@ -26,7 +26,7 @@ public:
     ~DigiTree();
 
     //---utils---
-    void Init(vector<string>& names);
+    void Init(vector<string>& names, vector<string>& timetypes);
     void Fill() {tree_->Fill();};
     
     TTree*        tree_; 
@@ -34,6 +34,7 @@ public:
 
     uint64*       index;
     unsigned int  n_channels;
+    unsigned int  n_times;
     float*        b_charge;
     float*        b_slope;
     float*        b_rms;
@@ -50,6 +51,7 @@ public:
     float*        fit_time;
     float*        fit_chi2;
     int*          channels;
+    int*          time_types;
     float*        calibration;
 };
 

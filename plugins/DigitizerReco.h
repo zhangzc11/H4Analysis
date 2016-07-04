@@ -28,6 +28,7 @@ private:
     int                         nSamples_;
     float                       tUnit_;
     vector<string>              channelsNames_;
+    vector<string>              timeRecoTypes_;
     map<string, vector<float> > timeOpts_;
     DigiTree                    recoTree_;
     WFTree                      outWFTree_;

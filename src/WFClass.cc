@@ -75,7 +75,7 @@ WFFitResults WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
 pair<float, float> WFClass::GetTime(string method, vector<float>& params)
 {
     //---CFD
-    if(method == "CFD")
+    if(method.find("CFD") != string::npos)
     {
         if(params.size()<1)
             cout << ">>>ERROR: to few arguments passed for CFD time computation" << endl;
@@ -88,7 +88,7 @@ pair<float, float> WFClass::GetTime(string method, vector<float>& params)
 
     }
     //---LED
-    else if(method == "LED")
+    else if(method.find("LED") != string::npos)
     {
         if(params.size()<1)
             cout << ">>>ERROR: to few arguments passed for LED time computation" << endl;
