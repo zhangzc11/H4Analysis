@@ -159,7 +159,14 @@ int main(int argc, char* argv[])
     //---begin
     for(auto& plugin : pluginSequence)
     {
-        plugin->Begin(opts, &index);
+        //---call Begin() methods and check the return status
+        bool r_status = plugin->Begin(opts, &index);
+        if(!r_status)
+        {
+            cout << ">>> ERROR: plugin returned bad flag from Begin() call: " << plugin->GetInstanceName() << endl;
+            exit(-1);
+        }
+        //---Get plugin shared data
         for(auto& shared : plugin->GetSharedData("", "TTree", true))
         {
             TTree* tree = (TTree*)shared.obj;
@@ -197,8 +204,14 @@ int main(int argc, char* argv[])
     //---end
     for(auto& plugin : pluginSequence)
     {
-        //---call endjob for each plugin
-        plugin->End(opts);
+        //---call endjob for each plugin        
+        bool r_status = plugin->End(opts);
+        // if(!r_status)
+        // {
+        //     cout << ">>> ERROR: plugin returned bad flag from End() call: " << plugin->GetInstanceName() << endl;
+        //     exit(-1);
+        // }
+
         //---get permanent data from each plugin and store them in the out file
         for(auto& shared : plugin->GetSharedData())
         {

@@ -7,7 +7,8 @@
 //**********Constructors******************************************************************
 WFClass::WFClass(int polarity, float tUnit):
     polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
-    bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), baseline_(-1), bRMS_(-1),
+    bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), fitTimeMax_(-1),
+    fitChi2Max_(-1), baseline_(-1), bRMS_(-1), leSample_(-1), leTime_(-1),
     cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1),
     fWinMin_(-1), fWinMax_(-1), tempFitTime_(-1), tempFitAmp_(-1), interpolator_(NULL)
 {}
@@ -274,11 +275,15 @@ void WFClass::Reset()
     bWinMax_ = -1;
     maxSample_ = -1;
     fitAmpMax_ = -1;
+    fitTimeMax_ = -1;
+    fitChi2Max_ = -1;
     baseline_ = -1;
     bRMS_ = -1;
     cfSample_ = -1;
     cfFrac_ = -1;
     cfTime_ = -1;
+    leSample_ = -1;
+    leTime_ = -1;
     chi2cf_ = -1;
     chi2le_ = -1;
     fWinMin_ = -1;

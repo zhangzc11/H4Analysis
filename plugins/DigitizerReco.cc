@@ -55,6 +55,8 @@ bool DigitizerReco::Begin(CfgManager& opts, uint64* index)
         outWFTree_ = WFTree(channelsNames_.size(), nSamples_, index, (TTree*)data_.back().obj);
         outWFTree_.Init();
     }
+
+    return true;
 }
 
 bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plugins, CfgManager& opts)
@@ -164,7 +166,7 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         //---WFs---
         if(fillWFtree)
         {
-            vector<float>* analizedWF = WFs[channel]->GetSamples();
+            vector<double>* analizedWF = WFs[channel]->GetSamples();
             for(int jSample=0; jSample<analizedWF->size(); ++jSample)
             {
                 outWFTree_.WF_ch[jSample+outCh*nSamples_] = outCh;
