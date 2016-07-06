@@ -16,13 +16,14 @@ bool DigitizerReco::Begin(CfgManager& opts, uint64* index)
             for(auto& run : opts.GetOpt<vector<string> >(tag+".runList"))
                 if(run == opts.GetOpt<string>("h4reco.run"))
                     templateTag = tag;
+
     for(auto& channel : channelsNames_)
     {
         if(opts.OptExist(channel+".type") && opts.GetOpt<string>(channel+".type") == "NINO")
             WFs[channel] = new WFClassNINO(opts.GetOpt<int>(channel+".polarity"), tUnit_);
         else
             WFs[channel] = new WFClass(opts.GetOpt<int>(channel+".polarity"), tUnit_);
-        if(opts.OptExist(channel+".templateFit"))
+        if(opts.OptExist(channel+".templateFit.file"))
         {            
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
             TH1* wfTemplate=(TH1*)templateFile->Get((opts.GetOpt<string>(channel+".templateFit.file", 1)+
@@ -148,7 +149,7 @@ bool DigitizerReco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& 
         
         //---template fit (only specified channels)
         WFFitResults fitResults{-1, -1000, -1};
-        if(opts.OptExist(channel+".templateFit"))
+        if(opts.OptExist(channel+".templateFit.file"))
         {
             fitResults = WFs[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0),
                                                    opts.GetOpt<int>(channel+".templateFit.fitWin", 1),

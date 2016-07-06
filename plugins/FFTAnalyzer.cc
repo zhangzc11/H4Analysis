@@ -29,20 +29,23 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
     RegisterSharedData(new TTree(fftTreeName.c_str(), "fft_tree"), "fft_tree", true);
     //---create tree branches:
     //   array size is determined by DigitizerReco channels
-    current_ch_ = 0;
     n_tot_ = n_channels*n_freqs_;
+    current_ch_ = new int[n_tot_];
+    freqs_ = new float[n_tot_];
     amplitudes_ = new float[n_tot_];
     phases_ = new float[n_tot_];
     fftTree_ = (TTree*)data_.back().obj;
     fftTree_->Branch("index", index, "index/l");
     fftTree_->Branch("n_tot", &n_tot_, "n_tot/i");
-    fftTree_->Branch("n_freqs", &n_freqs_, "n_freqs/i");
-    fftTree_->Branch("ch", &current_ch_, "ch[n_tot]/I");
-    fftTree_->Branch("ampl", &amplitudes_, "ampl[n_tot]/F");
-    fftTree_->Branch("phi", &phases_, "phi[n_tot]/F");
+    fftTree_->Branch("ch", current_ch_, "ch[n_tot]/I");
+    fftTree_->Branch("freq", freqs_, "freq[n_tot]/F");
+    fftTree_->Branch("ampl", amplitudes_, "ampl[n_tot]/F");
+    fftTree_->Branch("phi", phases_, "phi[n_tot]/F");
     //---set default values
     for(int i=0; i<n_tot_; ++i)
     {
+        current_ch_[i]=-1;
+        freqs_[i] = /*2*TMath::Pi()*/(i%n_freqs_);//n_freqs_;
         amplitudes_[i]=-1;
         phases_[i]=-1;
     }
@@ -67,8 +70,8 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
         fftr2c->GetPointsComplex(Re, Im);
         for(int k=0; k<n_freqs_; ++k)
         {
-            current_ch_ = channelsMap_[channel];
-            int index =  current_ch_ * n_freqs_ + k;
+            int index =  channelsMap_[channel] * n_freqs_ + k;
+            current_ch_[index] = channelsMap_[channel];
             amplitudes_[index] = sqrt(pow(Re[k], 2) + pow(Im[k],2));
             phases_[index] = atan(Im[k]/Re[k]);
         }        

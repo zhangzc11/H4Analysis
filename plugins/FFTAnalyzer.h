@@ -29,7 +29,8 @@ private:
     //---internal data
     unsigned int     n_tot_;
     unsigned int     n_freqs_;
-    int              current_ch_;
+    int*             current_ch_;
+    float*           freqs_;
     float*           amplitudes_;
     float*           phases_;
     string           digiInstance_;

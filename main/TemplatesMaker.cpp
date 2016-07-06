@@ -9,8 +9,8 @@
 #include "TH2F.h"
 #include "TROOT.h"
 
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "CfgManager/interface/CfgManager.h"
+#include "CfgManager/interface/CfgManagerT.h"
 #include "interface/H4Tree.h"
 #include "interface/WFClass.h"
 
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     int nSamples = opts.GetOpt<int>("global.nSamples");
     float tUnit = opts.GetOpt<float>("global.tUnit");
     string refChannel = opts.GetOpt<string>("global.refChannel");
-    vector<string> channelsNames = opts.GetOpt<vector<string>& >("global.channelsNames");
+    vector<string> channelsNames = opts.GetOpt<vector<string> >("global.channelsNames");
     map<string, vector<float> > timeOpts;
     timeOpts[refChannel] = opts.GetOpt<vector<float> >(refChannel+".timeOpts");
     for(auto& channel : channelsNames)
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     //---process WFs---
     long nentries=h4Tree.GetEntries();
     cout << ">>> Processing H4DAQ run #" << run << " events #" << nentries << " <<<" << endl;
-    while(h4Tree.NextEvt() && (iEvent<maxEvents || maxEvents==-1))
+    while(h4Tree.NextEntry() && (iEvent<maxEvents || maxEvents==-1))
     {        
         ++iEvent;
 	if (iEvent%1000==0) std::cout << "Processing event " << iEvent << "/" << nentries << std::endl;
@@ -208,6 +208,8 @@ int main(int argc, char* argv[])
         WFBaseline refBaseline=WF.SubtractBaseline();
         refAmpl = WF.GetInterpolatedAmpMax();            
         refTime = WF.GetTime(opts.GetOpt<string>(refChannel+".timeType"), timeOpts[refChannel]).first;
+	//---you may want to use an offset, for example if you use the trigger time
+	if(opts.OptExist(refChannel+".timeOffset"))refTime -= opts.GetOpt<float>(refChannel+".timeOffset");
         //---require reference channel to be good
         if(refTime/tUnit < opts.GetOpt<int>(refChannel+".signalWin", 0) ||
            refTime/tUnit > opts.GetOpt<int>(refChannel+".signalWin", 1) ||
