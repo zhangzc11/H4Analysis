@@ -1,5 +1,5 @@
-#ifndef __DIGITIZER_RECO__
-#define __DIGITIZER_RECO__
+#ifndef __WF_ANALYZER__
+#define __WF_ANALYZER__
 
 #include <iostream>
 
@@ -10,14 +10,14 @@
 #include "interface/WFClassNINO.h"
 #include "interface/WFViewer.h"
 
-class DigitizerReco: public PluginBase
+class WFAnalyzer: public PluginBase
 {
 public:
     //---ctors---
-    DigitizerReco(){};
+    WFAnalyzer(){};
 
     //---dtor---
-    ~DigitizerReco(){};
+    ~WFAnalyzer(){};
 
     //---utils---
     bool Begin(CfgManager& opts, uint64* index);
@@ -25,12 +25,16 @@ public:
     
 private:    
     //---internal data
-    int                         nSamples_;
-    float                       tUnit_;
+    string                      srcInstance_;
     vector<string>              channelsNames_;
-    map<string, WFClass*>       WFs;
+    vector<string>              timeRecoTypes_;
+    map<string, vector<float> > timeOpts_;
+    DigiTree                    recoTree_;
+    WFTree                      outWFTree_;
+    map<string, WFClass*>       WFs_;
+    map<string, TH1*>           templates_;
 };
 
-DEFINE_PLUGIN(DigitizerReco);
+DEFINE_PLUGIN(WFAnalyzer);
 
 #endif

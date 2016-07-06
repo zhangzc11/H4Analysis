@@ -139,7 +139,9 @@ bool HodoBTFReco::Begin(CfgManager& opts, uint64* index)
     PMT_to_hodoY_map.insert(pair<int,int>(63,28));
 
     //---create a position tree
-    RegisterSharedData(new TTree("hodo", "hodo_tree"), "hodo_tree", true);
+    bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
+        opts.GetOpt<bool>(instanceName_+".storeTree") : true;
+    RegisterSharedData(new TTree("hodo", "hodo_tree"), "hodo_tree", storeTree);
     hodoTree_ = PositionTree(index, (TTree*)data_.back().obj);
     hodoTree_.Init();
 

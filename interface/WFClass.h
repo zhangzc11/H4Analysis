@@ -49,6 +49,8 @@ public:
     //---getters---
     inline vector<double>* GetSamples() {return &samples_;};
     inline float           GetBaseline() {return baseline_;}
+    inline int             GetNSample() {return samples_.size();};
+    inline float           GetTUnit() {return tUnit_;};
     float                  GetAmpMax(int min=-1, int max=-1);
     WFFitResults           GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
     pair<float, float>     GetTime(string method, vector<float>& params); 
@@ -58,6 +60,7 @@ public:
     float                  GetModIntegral(int min=-1, int max=-1);
     virtual float          GetSignalIntegral(int riseWin, int fallWin);
     //---setters---
+    inline void            SetTrigRef(float trigRef){trigRef_ = trigRef;};
     void                   SetSignalWindow(int min, int max);
     void                   SetBaselineWindow(int min, int max);
     void                   SetTemplate(TH1* templateWF=NULL);
@@ -85,6 +88,7 @@ protected:
     vector<double> samples_;
     float          tUnit_;
     int            polarity_;
+    float          trigRef_;
     int            sWinMin_;
     int            sWinMax_;
     int            bWinMin_;

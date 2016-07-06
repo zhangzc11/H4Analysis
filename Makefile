@@ -16,13 +16,13 @@ DEPS_OBJS = lib/WFClass.o lib/WFClassNINO.o lib/WFViewer.o lib/MCPAnalyzer.o \
 	lib/H4Tree.o lib/RecoTree.o lib/DigiTree.o lib/WFTree.o lib/PositionTree.o lib/PluginBase.o lib/H4Dict.so
 PLUG_DEPS = plugins/DigitizerReco.h plugins/MakeCovarianceMatrix.h \
 	plugins/HodoReco.h plugins/HodoBTFReco.h plugins/HodoReco.h plugins/WireChamberReco.h \
-	plugins/InfoTreeMaker.h plugins/ADCReco.h plugins/FFTAnalyzer.h lib/PluginBase.o
+	plugins/InfoTreeMaker.h plugins/ADCReco.h plugins/WFAnalyzer.h plugins/FFTAnalyzer.h lib/PluginBase.o
 PLUG_OBJS = lib/libDigitizerReco.so lib/libMakeCovarianceMatrix.so \
 	lib/libHodoReco.so lib/libHodoBTFReco.so lib/libWireChamberReco.so \
-	lib/libInfoTreeMaker.so lib/libADCReco.so lib/libFFTAnalyzer.so
+	lib/libInfoTreeMaker.so lib/libADCReco.so lib/libWFAnalyzer.so lib/libFFTAnalyzer.so
 DICT_OBJS = lib/WFViewer.o lib/MCPAnalyzer.o
 
-MAIN = bin/H4Reco bin/TemplatesMaker
+MAIN = bin/H4Reco 
 
 all: dynamicTree cfgManager $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
 

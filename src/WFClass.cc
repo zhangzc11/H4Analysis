@@ -6,7 +6,7 @@
 
 //**********Constructors******************************************************************
 WFClass::WFClass(int polarity, float tUnit):
-    polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
+    polarity_(polarity), tUnit_(tUnit), trigRef_(0), sWinMin_(-1), sWinMax_(-1), 
     bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), fitTimeMax_(-1),
     fitChi2Max_(-1), baseline_(-1), bRMS_(-1), leSample_(-1), leTime_(-1),
     cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1),
@@ -224,15 +224,15 @@ float WFClass::GetModIntegral(int min, int max)
 //----------Set the signal window---------------------------------------------------------
 void WFClass::SetSignalWindow(int min, int max)
 {
-    sWinMin_=min;
-    sWinMax_=max;
+    sWinMin_ = min + trigRef_;
+    sWinMax_ = max + trigRef_;
 }
 
 //----------Set the baseline window-------------------------------------------------------
 void WFClass::SetBaselineWindow(int min, int max)
 {
-    bWinMin_=min;
-    bWinMax_=max;
+    bWinMin_ = min;
+    bWinMax_ = max;
 }
 
 //----------Set the fit template----------------------------------------------------------

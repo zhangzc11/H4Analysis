@@ -74,7 +74,9 @@ bool HodoReco::Begin(CfgManager& opts, uint64* index)
     hodoFiberOrderB_.push_back(35);
 
     //---create a position tree
-    RegisterSharedData(new TTree("hodo", "hodo_tree"), "hodo_tree", true);
+    bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
+        opts.GetOpt<bool>(instanceName_+".storeTree") : true;
+    RegisterSharedData(new TTree("hodo", "hodo_tree"), "hodo_tree", storeTree);
     hodoTree_ = PositionTree(index, (TTree*)data_.back().obj, 2);
     hodoTree_.Init();
     

@@ -11,7 +11,9 @@ bool WireChamberReco::Begin(CfgManager& opts, uint64* index)
     chYd_ = opts.GetOpt<int>(instanceName_+".chYdown");
     
     //---create a position tree
-    RegisterSharedData(new TTree("wire", "wire_tree"), "wire_tree", true);
+    bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
+        opts.GetOpt<bool>(instanceName_+".storeTree") : true;
+    RegisterSharedData(new TTree("wire", "wire_tree"), "wire_tree", storeTree);
     wireTree_ = PositionTree(index, (TTree*)data_.back().obj);
     wireTree_.Init();
     

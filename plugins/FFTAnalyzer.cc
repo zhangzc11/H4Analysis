@@ -26,7 +26,9 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
     //---register output data tree
     string fftTreeName = opts.OptExist(instanceName_+".fftTreeName") ?
         opts.GetOpt<string>(instanceName_+".fftTreeName") : "fft";
-    RegisterSharedData(new TTree(fftTreeName.c_str(), "fft_tree"), "fft_tree", true);
+    bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
+        opts.GetOpt<bool>(instanceName_+".storeTree") : true;
+    RegisterSharedData(new TTree(fftTreeName.c_str(), "fft_tree"), "fft_tree", storeTree);
     //---create tree branches:
     //   array size is determined by DigitizerReco channels
     n_tot_ = n_channels*n_freqs_;
@@ -57,7 +59,7 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
 {
     for(auto& channel : channelsNames_)
     {
-        //---get WFs from DigitizerREco instance data
+        //---get WFs from DigitizerReco instance data
         WFClass* wf = (WFClass*)plugins[digiInstance_]->GetSharedData(digiInstance_+"_"+channel, "", false).at(0).obj;
         vector<double>* samples = wf->GetSamples();
 
