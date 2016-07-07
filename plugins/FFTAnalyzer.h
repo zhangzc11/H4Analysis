@@ -10,7 +10,7 @@
 #include "interface/DigiTree.h"
 #include "interface/WFTree.h"
 #include "interface/WFClass.h"
-#include "interface/WFClassNINO.h"
+#include "interface/FFTClass.h"
 
 class FFTAnalyzer: public PluginBase
 {
@@ -27,16 +27,20 @@ public:
     
 private:    
     //---internal data
-    unsigned int     n_tot_;
-    unsigned int     n_freqs_;
-    int*             current_ch_;
-    float*           freqs_;
-    float*           amplitudes_;
-    float*           phases_;
-    string           digiInstance_;
-    vector<string>   channelsNames_;
-    map<string, int> channelsMap_;
-    TTree*           fftTree_;         
+    unsigned int              n_tot_;
+    int                       nInBins_;
+    int                       nOutBins_;
+    int*                      current_ch_;
+    float*                    freqs_;
+    float*                    amplitudes_;
+    float*                    phases_;
+    string                    fftType_;
+    string                    srcInstance_;
+    vector<string>            channelsNames_;
+    map<string, int>          channelsMap_;
+    map<string, FFTClass*>    FFTs_;
+    map<string, WFClass*>     WFs_;
+    TTree*                    fftTree_;         
 };
 
 DEFINE_PLUGIN(FFTAnalyzer);

@@ -29,7 +29,7 @@ private:
     vector<string>              channelsNames_;
     vector<string>              timeRecoTypes_;
     map<string, vector<float> > timeOpts_;
-    DigiTree                    recoTree_;
+    DigiTree                    digiTree_;
     WFTree                      outWFTree_;
     map<string, WFClass*>       WFs_;
     map<string, TH1*>           templates_;

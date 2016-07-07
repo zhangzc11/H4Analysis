@@ -10,7 +10,9 @@ bool WFAnalyzer::Begin(CfgManager& opts, uint64* index)
         return false;
     }
     srcInstance_ = opts.GetOpt<string>(instanceName_+".srcInstanceName");
-    float nSamples = opts.GetOpt<int>(srcInstance_+".nSamples");
+    float nSamples = opts.OptExist(srcInstance_+".nSamples") ?
+        opts.GetOpt<int>(srcInstance_+".nSamples") :
+        opts.GetOpt<int>(instanceName_+".nSamples");
     channelsNames_ = opts.GetOpt<vector<string> >(instanceName_+".channelsNames");
     timeRecoTypes_ = opts.GetOpt<vector<string> >(instanceName_+".timeRecoTypes");
 
@@ -40,13 +42,13 @@ bool WFAnalyzer::Begin(CfgManager& opts, uint64* index)
     }
     
     //---outputs---
-    string recoTreeName = opts.OptExist(instanceName_+".recoTreeName") ?
-        opts.GetOpt<string>(instanceName_+".recoTreeName") : "digi";
+    string digiTreeName = opts.OptExist(instanceName_+".digiTreeName") ?
+        opts.GetOpt<string>(instanceName_+".digiTreeName") : "digi";
     bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
         opts.GetOpt<bool>(instanceName_+".storeTree") : true;
-    RegisterSharedData(new TTree(recoTreeName.c_str(), "digi_tree"), "digi_tree", storeTree);
-    recoTree_ = DigiTree(index, (TTree*)data_.back().obj);
-    recoTree_.Init(channelsNames_, timeRecoTypes_);
+    RegisterSharedData(new TTree(digiTreeName.c_str(), "digi_tree"), "digi_tree", storeTree);
+    digiTree_ = DigiTree(index, (TTree*)data_.back().obj);
+    digiTree_.Init(channelsNames_, timeRecoTypes_);
     if(opts.GetOpt<int>(instanceName_+".fillWFtree"))
     {
         string wfTreeName = opts.OptExist(instanceName_+".wfTreeName") ?
@@ -65,20 +67,28 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
     int outCh=0;
     bool fillWFtree=false;
     if(opts.GetOpt<int>(instanceName_+".fillWFtree"))
-        fillWFtree = *recoTree_.index % opts.GetOpt<int>(instanceName_+".WFtreePrescale") == 0;
+        fillWFtree = *digiTree_.index % opts.GetOpt<int>(instanceName_+".WFtreePrescale") == 0;
 
     //---load WFs from source instance shared data
-    if(WFs_.size() == 0)
+    for(auto& channel : channelsNames_)
     {
-        for(auto& channel : channelsNames_)
-            WFs_[channel] = (WFClass*)plugins[srcInstance_]->GetSharedData(srcInstance_+"_"+channel, "", false).at(0).obj;
+        auto shared_data = plugins[srcInstance_]->GetSharedData(srcInstance_+"_"+channel, "", false);
+        if(shared_data.size() != 0)
+            WFs_[channel] = (WFClass*)shared_data.at(0).obj;
     }
     
     //---compute reco variables
     for(auto& channel : channelsNames_)
-    {        
+    {
+        //---skip dead channels
+        if(WFs_.find(channel) == WFs_.end())
+        {
+            ++outCh;
+            continue;
+        }
+        
         //---subtract a specified channel if requested
-        if(opts.OptExist(channel+".subtractChannel"))
+        if(opts.OptExist(channel+".subtractChannel") && WFs_.find(opts.GetOpt<string>(channel+".subtractChannel")) != WFs_.end())
             *WFs_[channel] -= *WFs_[opts.GetOpt<string>(channel+".subtractChannel")];        
         WFs_[channel]->SetBaselineWindow(opts.GetOpt<int>(channel+".baselineWin", 0), 
                                         opts.GetOpt<int>(channel+".baselineWin", 1));
@@ -86,18 +96,18 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
                                       opts.GetOpt<int>(channel+".signalWin", 1));
         WFBaseline baselineInfo = WFs_[channel]->SubtractBaseline();
         WFFitResults interpolAmpMax = WFs_[channel]->GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
-        recoTree_.b_charge[outCh] = WFs_[channel]->GetIntegral(opts.GetOpt<int>(channel+".baselineInt", 0), 
+        digiTree_.b_charge[outCh] = WFs_[channel]->GetIntegral(opts.GetOpt<int>(channel+".baselineInt", 0), 
                                                              opts.GetOpt<int>(channel+".baselineInt", 1));        
-        recoTree_.b_slope[outCh] = baselineInfo.slope;
-        recoTree_.b_rms[outCh] = baselineInfo.rms;
-        recoTree_.maximum[outCh] = WFs_[channel]->GetAmpMax();
-        recoTree_.time_maximum[outCh] = WFs_[channel]->GetTimeCF(1).first;
-        recoTree_.amp_max[outCh] = interpolAmpMax.ampl;
-        recoTree_.time_max[outCh] = interpolAmpMax.time;
-        recoTree_.chi2_max[outCh] = interpolAmpMax.chi2;
-        recoTree_.charge_tot[outCh] = WFs_[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
+        digiTree_.b_slope[outCh] = baselineInfo.slope;
+        digiTree_.b_rms[outCh] = baselineInfo.rms;
+        digiTree_.maximum[outCh] = WFs_[channel]->GetAmpMax();
+        digiTree_.time_maximum[outCh] = WFs_[channel]->GetTimeCF(1).first;
+        digiTree_.amp_max[outCh] = interpolAmpMax.ampl;
+        digiTree_.time_max[outCh] = interpolAmpMax.time;
+        digiTree_.chi2_max[outCh] = interpolAmpMax.chi2;
+        digiTree_.charge_tot[outCh] = WFs_[channel]->GetModIntegral(opts.GetOpt<int>(channel+".baselineInt", 1), 
                                                                    WFs_[channel]->GetNSample());
-        recoTree_.charge_sig[outCh] = WFs_[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
+        digiTree_.charge_sig[outCh] = WFs_[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0), 
                                                                      opts.GetOpt<int>(channel+".signalInt", 1));
         //---compute time with all the requested time reconstruction method
         for(int iT=0; iT<timeRecoTypes_.size(); ++iT)
@@ -106,13 +116,13 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
             if(timeOpts_.find(channel+"."+timeRecoTypes_[iT]) != timeOpts_.end())
             {
                 pair<float, float> timeInfo = WFs_[channel]->GetTime(timeRecoTypes_[iT], timeOpts_[channel+"."+timeRecoTypes_[iT]]);
-                recoTree_.time[outCh+iT*channelsNames_.size()] = timeInfo.first;
-                recoTree_.time_chi2[outCh+iT*channelsNames_.size()] = timeInfo.second;
+                digiTree_.time[outCh+iT*channelsNames_.size()] = timeInfo.first;
+                digiTree_.time_chi2[outCh+iT*channelsNames_.size()] = timeInfo.second;
             }
             else
             {
-                recoTree_.time[outCh+iT*channelsNames_.size()] = -99;
-                recoTree_.time_chi2[outCh+iT*channelsNames_.size()] = -99;
+                digiTree_.time[outCh+iT*channelsNames_.size()] = -99;
+                digiTree_.time_chi2[outCh+iT*channelsNames_.size()] = -99;
             }
         }
         
@@ -124,15 +134,15 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
             fitResults = WFs_[channel]->TemplateFit(opts.GetOpt<float>(channel+".templateFit.fitWin", 0),
                                                    opts.GetOpt<int>(channel+".templateFit.fitWin", 1),
                                                    opts.GetOpt<int>(channel+".templateFit.fitWin", 2));
-            recoTree_.fit_ampl[outCh] = fitResults.ampl;
-            recoTree_.fit_time[outCh] = fitResults.time;
-            recoTree_.fit_chi2[outCh] = fitResults.chi2;
+            digiTree_.fit_ampl[outCh] = fitResults.ampl;
+            digiTree_.fit_time[outCh] = fitResults.time;
+            digiTree_.fit_chi2[outCh] = fitResults.chi2;
         }            
 	//---calibration constant for each channel if needed
 	if(opts.OptExist(channel+".calibration.calibrationConst"))
-	  recoTree_.calibration[outCh]=opts.GetOpt<float>(channel+".calibration.calibrationConst");
+	  digiTree_.calibration[outCh]=opts.GetOpt<float>(channel+".calibration.calibrationConst");
 	else
-	  recoTree_.calibration[outCh]=1;
+	  digiTree_.calibration[outCh]=1;
 	
         //---WFs---
         if(fillWFtree)
@@ -153,7 +163,7 @@ bool WFAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plu
 
     //---fill the output trees 
     //---reco var
-    recoTree_.Fill();
+    digiTree_.Fill();
     //---WFs
     if(fillWFtree)
         outWFTree_.Fill();
