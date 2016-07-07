@@ -176,13 +176,13 @@ int main(int argc, char* argv[])
     }
             
     //---events loop
-    int maxEvents=opts.GetOpt<int>("h4reco.maxEvents");
+    int maxEvents = opts.OptExist("h4reco.maxEvents") ? opts.GetOpt<int>("h4reco.maxEvents") : -1;
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
     while(h4Tree.NextEntry() && (index-stoul(run)*1e9<maxEvents || maxEvents==-1))
     {
         if(index % 1000 == 0)
         {
-            cout << ">>>Processed events: " << index-stoul(run)*1e9 << "/"
+            cout << ">>> Processed events: " << index-stoul(run)*1e9 << "/"
                  << (maxEvents<0 ? h4Tree.GetEntries() : min((int)h4Tree.GetEntries(), maxEvents))
                  << endl;
             TrackProcess(cpu, mem, vsz, rss);
