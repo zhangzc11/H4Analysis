@@ -6,8 +6,9 @@
 
 //**********Constructors******************************************************************
 WFClass::WFClass(int polarity, float tUnit):
-    polarity_(polarity), tUnit_(tUnit), sWinMin_(-1), sWinMax_(-1), 
-    bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), baseline_(-1), bRMS_(-1),
+    polarity_(polarity), tUnit_(tUnit), trigRef_(0), sWinMin_(-1), sWinMax_(-1), 
+    bWinMin_(-1), bWinMax_(-1),  maxSample_(-1), fitAmpMax_(-1), fitTimeMax_(-1),
+    fitChi2Max_(-1), baseline_(-1), bRMS_(-1), leSample_(-1), leTime_(-1),
     cfSample_(-1), cfFrac_(-1), cfTime_(-1), chi2cf_(-1), chi2le_(-1),
     fWinMin_(-1), fWinMax_(-1), tempFitTime_(-1), tempFitAmp_(-1), interpolator_(NULL)
 {}
@@ -37,14 +38,14 @@ float WFClass::GetAmpMax(int min, int max)
 }
 
 //----------Get the interpolated max/min amplitude wrt polarity---------------------------
-float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
+WFFitResults WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
 {
     //---check if already computed
     if(min==-1 && max==-1 && fitAmpMax_!=-1)
-        return fitAmpMax_;
+        return WFFitResults{fitAmpMax_, fitTimeMax_*tUnit_, fitChi2Max_};
     //---check if signal window is valid
     if(min==max && max==-1 && sWinMin_==sWinMax_ && sWinMax_==-1)
-        return -1;
+        return {-1, -1000, -1};
     //---setup signal window
     if(min!=-1 && max!=-1)
         SetSignalWindow(min, max);
@@ -63,16 +64,19 @@ float WFClass::GetInterpolatedAmpMax(int min, int max, int nFitSamples)
         h_max.SetBinError(bin, BaselineRMS());
         ++bin;
     }
-    h_max.Fit(&f_max, "QR");
-
-    return fitAmpMax_ = f_max.Eval(-f_max.GetParameter(1)/(2*f_max.GetParameter(2)));
+    auto fit_result = h_max.Fit(&f_max, "QRS");
+    fitTimeMax_ = -f_max.GetParameter(1)/(2*f_max.GetParameter(2));
+    fitAmpMax_ = f_max.Eval(fitTimeMax_);
+    fitChi2Max_ = fit_result->Chi2()/(nFitSamples-3);
+        
+    return WFFitResults{fitAmpMax_, fitTimeMax_*tUnit_, fitChi2Max_};
 }
 
 //----------Get time with the specified method--------------------------------------------
 pair<float, float> WFClass::GetTime(string method, vector<float>& params)
 {
     //---CFD
-    if(method == "CFD")
+    if(method.find("CFD") != string::npos)
     {
         if(params.size()<1)
             cout << ">>>ERROR: to few arguments passed for CFD time computation" << endl;
@@ -85,7 +89,7 @@ pair<float, float> WFClass::GetTime(string method, vector<float>& params)
 
     }
     //---LED
-    else if(method == "LED")
+    else if(method.find("LED") != string::npos)
     {
         if(params.size()<1)
             cout << ">>>ERROR: to few arguments passed for LED time computation" << endl;
@@ -118,7 +122,7 @@ pair<float, float> WFClass::GetTimeCF(float frac, int nFitSamples, int min, int 
         if(fitAmpMax_ == -1)
             GetInterpolatedAmpMax(min, max);
         if(frac == 1) 
-            return make_pair(maxSample_, 1);
+            return make_pair(maxSample_*tUnit_, 1);
     
         //---find first sample above Amax*frac
         for(int iSample=maxSample_; iSample>tStart; --iSample)
@@ -220,15 +224,15 @@ float WFClass::GetModIntegral(int min, int max)
 //----------Set the signal window---------------------------------------------------------
 void WFClass::SetSignalWindow(int min, int max)
 {
-    sWinMin_=min;
-    sWinMax_=max;
+    sWinMin_ = min + trigRef_;
+    sWinMax_ = max + trigRef_;
 }
 
 //----------Set the baseline window-------------------------------------------------------
 void WFClass::SetBaselineWindow(int min, int max)
 {
-    bWinMin_=min;
-    bWinMax_=max;
+    bWinMin_ = min;
+    bWinMax_ = max;
 }
 
 //----------Set the fit template----------------------------------------------------------
@@ -271,11 +275,15 @@ void WFClass::Reset()
     bWinMax_ = -1;
     maxSample_ = -1;
     fitAmpMax_ = -1;
+    fitTimeMax_ = -1;
+    fitChi2Max_ = -1;
     baseline_ = -1;
     bRMS_ = -1;
     cfSample_ = -1;
     cfFrac_ = -1;
     cfTime_ = -1;
+    leSample_ = -1;
+    leTime_ = -1;
     chi2cf_ = -1;
     chi2le_ = -1;
     fWinMin_ = -1;

@@ -66,35 +66,35 @@ pair<TH1F, TH1F> DFT_cut(TH1F* inWave, string name, float fCut)
 
 TH1F* getMeanProfile(TH2F* waveForm)
 {
-  TH1F* prof=new TH1F(TString(waveForm->GetName())+"_prof",TString(waveForm->GetName())+"_prof",waveForm->GetNbinsX(),waveForm->GetXaxis()->GetXmin(),waveForm->GetXaxis()->GetXmax());
-  for (int ibin=1;ibin<waveForm->GetNbinsX()+1;++ibin)
+    TH1F* prof=new TH1F(TString(waveForm->GetName())+"_prof",TString(waveForm->GetName())+"_prof",waveForm->GetNbinsX(),waveForm->GetXaxis()->GetXmin(),waveForm->GetXaxis()->GetXmax());
+    for (int ibin=1;ibin<waveForm->GetNbinsX()+1;++ibin)
     {
-      TH1F* h=new TH1F(Form("%s_xbin_%d",waveForm->GetName(),ibin),Form("%s_xbin_%d",waveForm->GetName(),ibin),waveForm->GetNbinsY(),waveForm->GetYaxis()->GetXmin(),waveForm->GetYaxis()->GetXmax());
-      for (int ybin=1;ybin<waveForm->GetNbinsY()+1;++ybin)
+        TH1F* h=new TH1F(Form("%s_xbin_%d",waveForm->GetName(),ibin),Form("%s_xbin_%d",waveForm->GetName(),ibin),waveForm->GetNbinsY(),waveForm->GetYaxis()->GetXmin(),waveForm->GetYaxis()->GetXmax());
+        for (int ybin=1;ybin<waveForm->GetNbinsY()+1;++ybin)
 	{
-	  h->SetBinContent(ybin,waveForm->GetBinContent(ibin,ybin));
-	  h->SetBinError(ybin,waveForm->GetBinError(ibin,ybin));
+            h->SetBinContent(ybin,waveForm->GetBinContent(ibin,ybin));
+            h->SetBinError(ybin,waveForm->GetBinError(ibin,ybin));
 	}
-      float deltaMean=9999;
-      float deltaRMS=9999;
-      float oldMean=h->GetMean();
-      float oldRMS=h->GetRMS();
-      while (deltaMean>1E-4 || deltaRMS>1E-5)
+        float deltaMean=9999;
+        float deltaRMS=9999;
+        float oldMean=h->GetMean();
+        float oldRMS=h->GetRMS();
+        while (deltaMean>1E-4 || deltaRMS>1E-5)
 	{
-	  h->GetXaxis()->SetRangeUser(oldMean-3*oldRMS,oldMean+3*oldRMS);
-	  float newMean=h->GetMean();
-	  float newRMS=h->GetRMS();
-	  deltaMean=abs(newMean-oldMean);
-	  deltaRMS=abs(newRMS-oldRMS);
-	  oldMean=newMean;
-	  oldRMS=newRMS;
+            h->GetXaxis()->SetRangeUser(oldMean-3*oldRMS,oldMean+3*oldRMS);
+            float newMean=h->GetMean();
+            float newRMS=h->GetRMS();
+            deltaMean=abs(newMean-oldMean);
+            deltaRMS=abs(newRMS-oldRMS);
+            oldMean=newMean;
+            oldRMS=newRMS;
 	}
-      prof->SetBinContent(ibin,h->GetMean());
-      prof->SetBinError(ibin,h->GetMeanError());
+        prof->SetBinContent(ibin,h->GetMean());
+        prof->SetBinError(ibin,h->GetMeanError());
 
-      delete h;
+        delete h;
     }
-  return prof;
+    return prof;
 }
 //**********MAIN**************************************************************************
 int main(int argc, char* argv[])

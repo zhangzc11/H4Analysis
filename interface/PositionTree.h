@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -27,11 +28,11 @@ public:
     TTree*  tree_; 
 
     uint64* index;
-    int     n_planes;
-    float*  X;
-    float*  Y;
-    int*  nFibresOnX;
-    int*  nFibresOnY;
+    int n_planes;
+    int n_hitsX;
+    int n_hitsY;
+    float* X;
+    float* Y;
 };
 
 #endif

@@ -25,8 +25,8 @@ private:
     map<int, int> PMT_to_hodoY_map;
     PositionTree  hodoTree_;
 
-    int hodoXpos;
-    int hodoYpos;
+    vector<float> hodoXpos;
+    vector<float> hodoYpos;
     unsigned int nAdcChannels;
     unsigned int adcData[100], adcBoard[100], adcChannel[100];    
 };

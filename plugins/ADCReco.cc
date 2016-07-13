@@ -10,7 +10,9 @@ bool ADCReco::Begin(CfgManager& opts, uint64* index)
     values_->resize(nChannels_);
 
     //---book and instanciate tree
-    RegisterSharedData(new TTree("adc", "adc_tree"), "adc_tree", true);
+    bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
+        opts.GetOpt<bool>(instanceName_+".storeTree") : true;
+    RegisterSharedData(new TTree("adc", "adc_tree"), "adc_tree", storeTree);
     adcTree_ = (TTree*)data_.back().obj;
 
     adcTree_->Branch("index", index, "index/l");

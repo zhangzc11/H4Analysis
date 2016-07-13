@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 
     //-----output setup-----
     uint64 index=stoul(run)*1e9;
-    TFile* outROOT = new TFile("ntuples/"+outSuffix+TString(run)+".root", "RECREATE");
+    TFile* outROOT = new TFile(outSuffix+TString(run)+".root", "RECREATE");
     outROOT->cd();
     RecoTree mainTree(&index);
 
@@ -159,7 +159,14 @@ int main(int argc, char* argv[])
     //---begin
     for(auto& plugin : pluginSequence)
     {
-        plugin->Begin(opts, &index);
+        //---call Begin() methods and check the return status
+        bool r_status = plugin->Begin(opts, &index);
+        if(!r_status)
+        {
+            cout << ">>> ERROR: plugin returned bad flag from Begin() call: " << plugin->GetInstanceName() << endl;
+            exit(-1);
+        }
+        //---Get plugin shared data
         for(auto& shared : plugin->GetSharedData("", "TTree", true))
         {
             TTree* tree = (TTree*)shared.obj;
@@ -169,13 +176,13 @@ int main(int argc, char* argv[])
     }
             
     //---events loop
-    int maxEvents=opts.GetOpt<int>("h4reco.maxEvents");
+    int maxEvents = opts.OptExist("h4reco.maxEvents") ? opts.GetOpt<int>("h4reco.maxEvents") : -1;
     cout << ">>> Processing H4DAQ run #" << run << " <<<" << endl;
     while(h4Tree.NextEntry() && (index-stoul(run)*1e9<maxEvents || maxEvents==-1))
     {
         if(index % 1000 == 0)
         {
-            cout << ">>>Processed events: " << index-stoul(run)*1e9 << "/"
+            cout << ">>> Processed events: " << index-stoul(run)*1e9 << "/"
                  << (maxEvents<0 ? h4Tree.GetEntries() : min((int)h4Tree.GetEntries(), maxEvents))
                  << endl;
             TrackProcess(cpu, mem, vsz, rss);
@@ -197,8 +204,14 @@ int main(int argc, char* argv[])
     //---end
     for(auto& plugin : pluginSequence)
     {
-        //---call endjob for each plugin
-        plugin->End(opts);
+        //---call endjob for each plugin        
+        bool r_status = plugin->End(opts);
+        // if(!r_status)
+        // {
+        //     cout << ">>> ERROR: plugin returned bad flag from End() call: " << plugin->GetInstanceName() << endl;
+        //     exit(-1);
+        // }
+
         //---get permanent data from each plugin and store them in the out file
         for(auto& shared : plugin->GetSharedData())
         {
