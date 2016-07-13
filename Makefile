@@ -26,7 +26,7 @@ lib/%.o: src/%.cc interface/%.h $(DEPS)
 	@$ $(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 	@echo " CXX $<"
 
-lib/lib%.so: plugins/%.cc plugins/%.h $(PLUG_DEPS)
+lib/lib%.so: plugins/%.cc plugins/%.h $(PLUG_DEPS) $(DEPS_OBJS)
 	@$ $(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 	@echo " CXX $<"
 
