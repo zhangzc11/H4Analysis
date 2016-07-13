@@ -325,7 +325,7 @@ WFFitResults WFClass::TemplateFit(float offset, int lW, int hW)
         ROOT::Math::Functor chi2(this, &WFClass::TemplateChi2, 2);
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
         minimizer->SetMaxFunctionCalls(100000);
-        minimizer->SetMaxIterations(100);
+        minimizer->SetMaxIterations(1000);
         minimizer->SetTolerance(1e-3);
         minimizer->SetPrintLevel(0);
         minimizer->SetFunction(chi2);
