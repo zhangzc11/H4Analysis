@@ -31,6 +31,8 @@ bool WFAnalyzer::Begin(CfgManager& opts, uint64* index)
             TFile* templateFile = TFile::Open(opts.GetOpt<string>(channel+".templateFit.file", 0).c_str(), ".READ");
             TH1* wfTemplate=(TH1*)templateFile->Get((opts.GetOpt<string>(channel+".templateFit.file", 1)+
                                                      +"_"+templateTag).c_str());
+	    templates_[channel] = (TH1F*) wfTemplate->Clone();
+	    templates_[channel] -> SetDirectory(0);
             templateFile->Close();
         }
         //---keep track of all the possible time reco method requested
