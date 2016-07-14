@@ -6,7 +6,7 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
     //---get all needed information from DigitizerReco
     //   n_channels is fixed by DigiReco since we want to use
     //   the same channel number <-> name mapping
-    //   NB: if src is FFTAnalyzer search keep searching for the DigiReco instance
+    //   NB: if src is FFTAnalyzer search keep searching for the DigiReco instance    
     vector<string> srcChannels;
     int nChannels;
     float tUnit;
@@ -86,6 +86,7 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
         RegisterSharedData(new TTree(fftTreeName.c_str(), "fft_tree"), "fft_tree", storeTree);
         //---create tree branches:
         //   array size is determined by DigitizerReco channels
+        index_ = index;
         n_tot_ = nChannels*nSamples_/2;
         current_ch_ = new int[n_tot_];
         freqs_ = new float[n_tot_];
@@ -94,7 +95,7 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
         amplitudes_ = new float[n_tot_];
         phases_ = new float[n_tot_];
         fftTree_ = (TTree*)data_.back().obj;
-        fftTree_->Branch("index", index, "index/l");
+        fftTree_->Branch("index", index_, "index/l");
         fftTree_->Branch("n_tot", &n_tot_, "n_tot/i");
         fftTree_->Branch("ch", current_ch_, "ch[n_tot]/I");        
         fftTree_->Branch("freq", freqs_, "freq[n_tot]/F");
@@ -113,6 +114,8 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
             phases_[i]=-1;
         }
     }
+    else
+        fftTree_ = NULL;
     
     return true;
 }
@@ -193,8 +196,11 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
     }
     //---fill FFT tree
     if(fftTree_)
+    {
         fftTree_->Fill();
-        
+        cout << "HOLA" <<endl;
+    }
+    
     return true;
 }
 

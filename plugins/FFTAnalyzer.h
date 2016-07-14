@@ -30,6 +30,7 @@ public:
     
 private:    
     //---internal data
+    uint64*                   index_;
     unsigned int              n_tot_;
     int                       nSamples_;
     int*                      current_ch_;
