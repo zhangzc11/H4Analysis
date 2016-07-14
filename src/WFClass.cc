@@ -247,7 +247,7 @@ void WFClass::SetTemplate(TH1* templateWF)
 
     //---reset template fit variables
     if(interpolator_)
-        delete interpolator_;
+      return;
 
     interpolator_ = new ROOT::Math::Interpolator(0, ROOT::Math::Interpolation::kCSPLINE);
     tempFitTime_ = templateWF->GetBinCenter(templateWF->GetMaximumBin());
