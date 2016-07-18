@@ -196,10 +196,7 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
     }
     //---fill FFT tree
     if(fftTree_)
-    {
         fftTree_->Fill();
-        cout << "HOLA" <<endl;
-    }
     
     return true;
 }
