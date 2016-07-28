@@ -38,7 +38,7 @@ lib/H4Dict.so: lib/LinkDef.cxx $(DICT_OBJS)
 	@echo " CXX $<"
 	@$ $(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
-bin/%: main/%.cpp $(DEPS_OBJS) interface/PluginLoader.h CfgManager/lib/CfgManagerDict.s
+bin/%: main/%.cpp $(DEPS_OBJS) interface/PluginLoader.h CfgManager/lib/CfgManagerDict.so
 	@echo " CXX $<"o
 	@$ $(CXX) $(CXXFLAGS) -ldl -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
