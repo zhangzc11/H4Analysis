@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
         WF.SetSignalWindow(opts.GetOpt<int>(refChannel+".signalWin", 0), 
                            opts.GetOpt<int>(refChannel+".signalWin", 1));
         WFBaseline refBaseline=WF.SubtractBaseline();
-        refAmpl = WF.GetInterpolatedAmpMax();            
+        refAmpl = WF.GetInterpolatedAmpMax().ampl;            
         refTime = WF.GetTime(opts.GetOpt<string>(refChannel+".timeType"), timeOpts[refChannel]).first;
 	//---you may want to use an offset, for example if you use the trigger time
 	if(opts.OptExist(refChannel+".timeOffset"))refTime -= opts.GetOpt<float>(refChannel+".timeOffset");
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
             WF.SetSignalWindow(opts.GetOpt<int>(channel+".signalWin", 0), 
                                opts.GetOpt<int>(channel+".signalWin", 1));
             WFBaseline channelBaseline=WF.SubtractBaseline();
-	    channelAmpl = WF.GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2));
+	    channelAmpl = WF.GetInterpolatedAmpMax(-1,-1,opts.GetOpt<int>(channel+".signalWin", 2)).ampl;
             channelTime = WF.GetTime(opts.GetOpt<string>(channel+".timeType"), timeOpts[channel]).first;
             //---skip bad events or events with no signal
             if(channelTime/tUnit > opts.GetOpt<int>(channel+".signalWin", 0) &&
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
                channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold") &&
                channelAmpl < 4000)
             {                
-                vector<float>* analizedWF = WF.GetSamples();
+               const vector<double>* analizedWF = WF.GetSamples();
                 for(int iSample=0; iSample<analizedWF->size(); ++iSample)
 		  templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
 	    }
@@ -267,9 +267,9 @@ int main(int argc, char* argv[])
 
     for(auto& channel : channelsNames)
     {
-      //      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 4);
-      //      dft.first.Write();
-      //      dft.second.Write();
+      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 5);
+      dft.first.Write();
+      dft.second.Write();
       if (templates[channel]->GetEntries()>1024*10)
 	{
 	  TH1F* prof=getMeanProfile(templates[channel]);
