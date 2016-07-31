@@ -139,6 +139,8 @@ int main(int argc, char* argv[])
     string path=opts.GetOpt<string>("global.path2data");
     string run=opts.GetOpt<string>("global.run");
     string outSuffix=opts.GetOpt<string>("global.outFileSuffix");
+    string tag=opts.GetOpt<string>("global.tag");
+
     if(argc > 2)
         run = argv[2];
     int maxEvents = opts.GetOpt<int>("global.maxEvents");
