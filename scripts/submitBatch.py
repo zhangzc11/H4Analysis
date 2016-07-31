@@ -26,7 +26,7 @@ def lxbatchSubmitJob (run, path, cfg, outdir, queue, job_dir, dryrun):
     f.write ('#!/bin/sh' + '\n\n')
     f.write ('git clone '+gitRepo+' \n')
     f.write ('cd H4Analysis/ \n')
-    f.write ('source scripts/setup_lxplus.sh \n')
+    f.write ('source scripts/setup.sh \n')
     f.write ('make -j 2 \n')
     f.write ('cp '+path+cfg+' job.cfg \n\n')
     f.write ('cp '+path+'/ntuples/Template*.root ./ntuples/ \n\n')
