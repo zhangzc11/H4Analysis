@@ -24,7 +24,7 @@ def lxbatchSubmitJob (run, path, cfg, outdir, queue, job_dir, dryrun):
     gitRepo = getoutput('git remote -v | grep origin | grep fetch | awk \'{print $2}\'')
     f = open (jobname, 'w')
     f.write ('#!/bin/sh' + '\n\n')
-    f.write ('git clone '+gitRepo+' \n')
+    f.write ('git clone --recursive '+gitRepo+' \n')
     f.write ('cd H4Analysis/ \n')
     f.write ('source scripts/setup.sh \n')
     f.write ('make -j 2 \n')
