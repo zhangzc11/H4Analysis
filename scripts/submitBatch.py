@@ -32,7 +32,7 @@ def lxbatchSubmitJob (run, path, cfg, outdir, queue, job_dir, dryrun):
     f.write ('cp '+path+'/ntuples/Template*.root ./ntuples/ \n\n')
     f.write ('bin/H4Reco job.cfg '+run+'\n\n')
     if "/eos/cms/" in outdir:
-        f.write ('cmsStage -f ntuples/*'+run+'.root '+outdir+'\n')
+        f.write ('for file in ntuples/*'+run+'.root; do /afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select cp $file '+outdir+'/$file; done\n')
     else:
         f.write ('cp ntuples/*'+run+'.root '+outdir+'\n')
     f.close ()

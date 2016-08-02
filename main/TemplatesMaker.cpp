@@ -16,7 +16,7 @@
 
 using namespace std;
 
-#define DEBUG
+//#define DEBUG
 
 #include <netdb.h>
 #include <unistd.h>
@@ -121,6 +121,55 @@ TH1F* getMeanProfile(TH2F* waveForm)
     }
     return prof;
 }
+
+//----------Get input files---------------------------------------------------------------
+void ReadInputFiles(CfgManager& opts, TChain* inTree)
+{
+    int nFiles=0;
+    string ls_command;
+    string file;
+    string path=opts.GetOpt<string>("global.path2data");
+    string run=opts.GetOpt<string>("global.run");
+
+    //---Get file list searching in specified path (eos or locally)
+    if(path.find("/eos/cms") != string::npos)
+      {
+	if ( getMachineDomain() != "cern.ch" )
+	  ls_command = string("gfal-ls root://eoscms/"+path+run+" | grep 'root' > tmp/"+run+".list");
+	else
+	  ls_command = string("/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select ls "+path+run+" | grep 'root' > tmp/"+run+".list");
+      }
+    else if(path.find("srm://") != string::npos)
+        ls_command = string("lcg-ls "+path+run+
+                            " | sed -e 's:^.*\\/cms\\/:root\\:\\/\\/xrootd-cms.infn.it\\/\\/:g' | grep 'root' > tmp/"+run+".list");
+    else
+        ls_command = string("ls "+path+run+" | grep 'root' > tmp/"+run+".list");
+    system(ls_command.c_str());
+    ifstream waveList(string("tmp/"+run+".list").c_str(), ios::in);
+    while(waveList >> file && (opts.GetOpt<int>("global.maxFiles")<0 || nFiles<opts.GetOpt<int>("global.maxFiles")) )
+    {
+        if(path.find("/eos/cms") != string::npos)
+        {
+            std::cout << "+++ Adding file " << ("root://eoscms/"+path+run+"/"+file).c_str() << std::endl;
+            inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
+        }
+        else if(path.find("srm://") != string::npos)
+        {
+            std::cout << "+++ Adding file " << file << std::endl;
+            inTree->AddFile((file).c_str());
+        }
+        else
+        {
+            std::cout << "+++ Adding file " << (path+run+"/"+file).c_str() << std::endl;
+            inTree->AddFile((path+run+"/"+file).c_str());
+        }
+        ++nFiles;
+    }
+
+    return;
+}
+
+
 //**********MAIN**************************************************************************
 int main(int argc, char* argv[])
 {
@@ -131,18 +180,23 @@ int main(int argc, char* argv[])
     }
 
     gROOT->SetBatch(kTRUE);
-    //---load options---
+    //---load options---    
     CfgManager opts;
     opts.ParseConfigFile(argv[1]);
+
+    //-----input setup-----    
+    if(argc > 2)
+    {
+        vector<string> run(1, argv[2]);
+        opts.SetOpt("global.run", run);
+    }
 
     //---data opts
     string path=opts.GetOpt<string>("global.path2data");
     string run=opts.GetOpt<string>("global.run");
-    string outSuffix=opts.GetOpt<string>("global.outFileSuffix");
-    string tag=opts.GetOpt<string>("global.tag");
 
-    if(argc > 2)
-        run = argv[2];
+    string outSuffix=opts.GetOpt<string>("global.outFileSuffix");
+
     int maxEvents = opts.GetOpt<int>("global.maxEvents");
     //---channels opts
     int nCh = opts.GetOpt<int>("global.nCh");
@@ -167,39 +221,8 @@ int main(int argc, char* argv[])
         templates[channel] = new TH2F(channel.c_str(), channel.c_str(),
 				      16000, -20, 120, 1200, -0.1, 1.1);
   
-    //-----input setup-----
     TChain* inTree = new TChain("H4tree");
-    string ls_command;
-    if(path.find("/eos/cms") != string::npos)
-      {
-	if ( getMachineDomain() != "cern.ch" )
-	  ls_command = string("gfal-ls root://eoscms/"+path+run+" | grep 'root' > tmp/"+run+".list");
-	else
-	  ls_command = string("/afs/cern.ch/project/eos/installation/0.3.84-aquamarine/bin/eos.select ls "+path+run+" | grep 'root' > tmp/"+run+".list");
-      }
-    else
-        ls_command = string("ls "+path+run+" | grep 'root' > tmp/"+run+".list");
-    system(ls_command.c_str());
-    ifstream waveList(string("tmp/"+run+".list").c_str(), ios::in);
-    string file;
-    
-    int nFiles=0;
-    while(waveList >> file && (opts.GetOpt<int>("global.maxFiles")<0 || nFiles<opts.GetOpt<int>("global.maxFiles")) )
-    {
-      
-        if(path.find("/eos/cms") != string::npos)
-	  {
-	    std::cout << "+++ Adding file " << ("root://eoscms/"+path+run+"/"+file).c_str() << std::endl;
-            inTree->AddFile(("root://eoscms/"+path+run+"/"+file).c_str());
-	  }
-        else
-	  {
-	    std::cout << "+++ Adding file " << (path+run+"/"+file).c_str() << std::endl;
-            inTree->AddFile((path+run+"/"+file).c_str());
-	  }
-	++nFiles;
-
-    }
+    ReadInputFiles(opts, inTree);
     H4Tree h4Tree(inTree);
 
     //---process WFs---
