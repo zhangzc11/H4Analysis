@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
     map<string, TH2F*> templates;
     for(auto channel : channelsNames)
         templates[channel] = new TH2F(channel.c_str(), channel.c_str(),
-				      16000, -20, 120, 1200, -0.1, 1.1);
+				      18000, -20, 160, 1200, -0.1, 1.1);
   
     TChain* inTree = new TChain("H4tree");
     ReadInputFiles(opts, inTree);
