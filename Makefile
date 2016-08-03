@@ -18,11 +18,7 @@ PLUG_OBJS = lib/libDigitizerReco.so lib/libMakeCovarianceMatrix.so \
 	lib/libInfoTreeMaker.so lib/libADCReco.so lib/libWFAnalyzer.so lib/libFFTAnalyzer.so
 DICT_OBJS = lib/WFViewer.o lib/MCPAnalyzer.o
 
-<<<<<<< HEAD
 MAIN = bin/H4Reco bin/TemplatesMaker 
-=======
-MAIN = bin/H4Reco bin/TemplatesMaker
->>>>>>> micheli/master
 
 all: dynamicTree cfgManager $(DEPS_OBJS) $(PLUG_OBJS) $(MAIN) lib/LinkDef.cxx 
 
