@@ -317,9 +317,9 @@ int main(int argc, char* argv[])
                channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold") &&
                channelAmpl < 4000)
             {                
-                const vector<double>* analizedWF = WF.GetSamples();
-                for(int iSample=0; iSample<analizedWF->size(); ++iSample)
-		  templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
+	      const vector<double>* analizedWF = WF.GetSamples();
+	      for(int iSample=0; iSample<analizedWF->size(); ++iSample)
+		templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
 	    }
         }
     }   
@@ -331,10 +331,9 @@ int main(int argc, char* argv[])
 
     for(auto& channel : channelsNames)
     {
-      //      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 4);
-      //      dft.first.Write();
-      //      dft.second.Write();
-      std::cout << "++++ " << channel << " entries: " << templates[channel]->GetEntries() << std::endl; 
+      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 5);
+      dft.first.Write();
+      dft.second.Write();
       if (templates[channel]->GetEntries()>1024*10)
 	{
 	  TH1F* prof=getMeanProfile(templates[channel]);
