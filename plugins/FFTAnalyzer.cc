@@ -20,16 +20,16 @@ bool FFTAnalyzer::Begin(CfgManager& opts, uint64* index)
     if(opts.GetOpt<string>(srcInstance_+".pluginType") != "DigitizerReco")
     {
         string digiInstance = opts.GetOpt<string>(srcInstance_+".srcInstanceName");
-        srcChannels = opts.GetOpt<vector<string> >(digiInstance+".channelsNames");
         nSamples_ = (opts.GetOpt<int>(digiInstance+".nSamples"));
         tUnit = (opts.GetOpt<float>(digiInstance+".tUnit"));
     }
     else
     {
-        srcChannels = opts.GetOpt<vector<string> >(srcInstance_+".channelsNames");
         nSamples_ = (opts.GetOpt<int>(srcInstance_+".nSamples"));
         tUnit = (opts.GetOpt<float>(srcInstance_+".tUnit"));
     }
+
+    srcChannels = opts.GetOpt<vector<string> >(instanceName_+".channelsNames");
     nChannels = srcChannels.size();
 
     //---register shared FFTs
@@ -202,9 +202,6 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
             if(opts.OptExist(instanceName_+".subtractFFTNoise")){
 	      double noiseRe=0,noiseIm=0,newRe=0, newIm=0;
 	      for(int i=0;i<nSamples_/2;++i){
-		if(opts.OptExist(instanceName_+".frequencyCut")){
-		  if(i>opts.GetOpt<float>(instanceName_+".frequencyCut")) continue;
-		}
 		noiseRe = noiseTemplateHistoRe_->GetBinContent(i);
 		newRe = *(Re->data()+i) - noiseRe; 
 		noiseIm = noiseTemplateHistoIm_->GetBinContent(i);
@@ -212,7 +209,18 @@ bool FFTAnalyzer::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& pl
 		fftc2r->SetPoint(i,newRe,newIm);
 		//		std::cout<<i<<" "<< *(Re->data()+i)<<" "<<noiseRe<<" "<<newRe<<std::endl;
 	      }
-	    }else{
+	    } 
+	    else if(opts.OptExist(instanceName_+".frequencyCut")){
+	      for(int i=0;i<nSamples_/2;++i){
+		if(opts.OptExist(instanceName_+".frequencyCut")){
+		  if(i<opts.GetOpt<float>(instanceName_+".frequencyCut"))
+		    fftc2r->SetPoint(i,*(Re->data()+i),*(Im->data()+i));
+		  else
+		    fftc2r->SetPoint(i,0,0);
+		}
+	      }
+	    }
+	    else{
 	      fftc2r->SetPointsComplex(Re->data(), Im->data());
 	    }
             fftc2r->Transform();
