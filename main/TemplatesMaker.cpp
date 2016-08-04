@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
     map<string, TH2F*> templates;
     for(auto channel : channelsNames)
         templates[channel] = new TH2F(channel.c_str(), channel.c_str(),
-				      16000, -20, 120, 1200, -0.1, 1.1);
+				      18000, -20, 160, 1200, -0.1, 1.1);
   
     TChain* inTree = new TChain("H4tree");
     ReadInputFiles(opts, inTree);
@@ -317,9 +317,9 @@ int main(int argc, char* argv[])
                channelAmpl > opts.GetOpt<int>(channel+".amplitudeThreshold") &&
                channelAmpl < 4000)
             {                
-                const vector<double>* analizedWF = WF.GetSamples();
-                for(int iSample=0; iSample<analizedWF->size(); ++iSample)
-		  templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
+	      const vector<double>* analizedWF = WF.GetSamples();
+	      for(int iSample=0; iSample<analizedWF->size(); ++iSample)
+		templates[channel]->Fill(iSample*tUnit-refTime, analizedWF->at(iSample)/channelAmpl);
 	    }
         }
     }   
@@ -331,10 +331,9 @@ int main(int argc, char* argv[])
 
     for(auto& channel : channelsNames)
     {
-      //      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 4);
-      //      dft.first.Write();
-      //      dft.second.Write();
-      std::cout << "++++ " << channel << " entries: " << templates[channel]->GetEntries() << std::endl; 
+      pair<TH1F, TH1F> dft = DFT_cut(getMeanProfile(templates[channel]), channel, 5);
+      dft.first.Write();
+      dft.second.Write();
       if (templates[channel]->GetEntries()>1024*10)
 	{
 	  TH1F* prof=getMeanProfile(templates[channel]);
