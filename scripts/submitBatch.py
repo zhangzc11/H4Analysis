@@ -21,10 +21,14 @@ def get_comma_separated_args(self, arg_line):
 
 def lxbatchSubmitJob (run, path, cfg, outdir, queue, job_dir, dryrun):
     jobname = job_dir+'/H4Reco_'+queue+'_'+run+'.sh'
-    gitRepo = getoutput('git remote -v | grep origin | grep fetch | awk \'{print $2}\'')
+    #gitRepo = getoutput('git remote -v | grep origin | grep fetch | awk \'{print $2}\'')
+    #pwd = os.getcwd()
+    #work_directory = pwd.replace("scripts","")
     f = open (jobname, 'w')
     f.write ('#!/bin/sh' + '\n\n')
-    f.write ('git clone --recursive '+gitRepo+' \n')
+    #f.write ('git clone --recursive '+gitRepo+' \n')
+    f.write('cp -r '+path+' ./ \n')
+    #f.write()
     f.write ('cd H4Analysis/ \n')
     f.write ('source scripts/setup.sh \n')
     f.write ('make -j 2 \n')
