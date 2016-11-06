@@ -1,3 +1,18 @@
+******************README for t1065 tuplizer*****************
+======set up======
+git clone --recursive https://github.com/zhangzc11/H4Analysis.git
+cd H4Analysis
+source scripts/setup.sh
+make
+(CMSSW not necessacy)
+======make the template=====
+bin/TemplatesMaker cfg/TemplatesMaker.cfg 5166
+
+======run the tuplizer======
+bin/H4Reco cfg/H4_t1065_test.cfg 5166
+
+**************END of README for t1065 tuplizer**************
+
 * H4Analysis
   - This repository aims to provide a fast reconstruction of data
     acquired with the H4DAQ mainly with the CAEN V1742 Digitizer

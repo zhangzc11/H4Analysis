@@ -51,6 +51,7 @@ public:
     inline float           GetBaseline() {return baseline_;}
     inline int             GetNSample() {return samples_.size();};
     inline float           GetTUnit() {return tUnit_;};
+    float                  GetiSample(int iSample) {return samples_.at(iSample);};
     float                  GetAmpMax(int min=-1, int max=-1);
     WFFitResults           GetInterpolatedAmpMax(int min=-1, int max=-1, int nFitSamples=7);
     pair<float, float>     GetTime(string method, vector<float>& params); 
