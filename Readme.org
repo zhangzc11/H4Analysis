@@ -1,17 +1,24 @@
 * t1065 tuplizer
 
 ** ==set up==
-git clone --recursive https://github.com/zhangzc11/H4Analysis.git
-cd H4Analysis
-source scripts/setup.sh
-make
+
+	git clone --recursive https://github.com/zhangzc11/H4Analysis.git
+
+	cd H4Analysis
+
+	source scripts/setup.sh
+
+	make
+
 (CMSSW not necessacy)
 
 ** ==make the template==
-bin/TemplatesMaker cfg/TemplatesMaker.cfg 5166
+
+	bin/TemplatesMaker cfg/TemplatesMaker.cfg 5166
 
 ** ==run the tuplizer==
-bin/H4Reco cfg/H4_t1065_test.cfg 5166
+
+	bin/H4Reco cfg/H4_t1065_test.cfg 5166
 
 
 *************************************************************
