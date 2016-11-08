@@ -44,6 +44,7 @@ bool T1065Reco::Begin(CfgManager& opts, uint64* index)
     }
     
     //---outputs---
+    eventCount_ = 0;
     string digiTreeName = opts.OptExist(instanceName_+".digiTreeName") ?
         opts.GetOpt<string>(instanceName_+".digiTreeName") : "digi";
     bool storeTree = opts.OptExist(instanceName_+".storeTree") ?
@@ -80,6 +81,10 @@ bool T1065Reco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plug
     bool fillWFtree=false;
     if(opts.GetOpt<int>(instanceName_+".fillWFtree"))
         fillWFtree = *digiTree_.index % opts.GetOpt<int>(instanceName_+".WFtreePrescale") == 0;
+
+
+    t1065Tree_.event = eventCount_;
+    eventCount_++;
 
     //---load WFs from source instance shared data
     for(auto& channel : channelsNames_)
@@ -179,10 +184,11 @@ bool T1065Reco::ProcessEvent(const H4Tree& event, map<string, PluginBase*>& plug
 	int nchannel_t =  outCh%9;
         int min_iSample = opts.GetOpt<int>(channel+".baselineInt", 0);
    	int max_iSample = opts.GetOpt<int>(channel+".baselineInt", 1);
-	for(int iSample=min_iSample; iSample<max_iSample; iSample++)        
+	for(int iSample=0; iSample<1024; iSample++)        
 	{
 		t1065Tree_.b_c[ngroup_t][nchannel_t][iSample] = (short)(WFs_[channel]->GetiSample(iSample));
 		t1065Tree_.raw[outCh][iSample] = (short)(WFs_[channel]->GetiSample(iSample));
+		t1065Tree_.t0[iSample] = iSample;
 	}
 	t1065Tree_.integral[outCh] = WFs_[channel]->GetSignalIntegral(opts.GetOpt<int>(channel+".signalInt", 0),
                                                                      opts.GetOpt<int>(channel+".signalInt", 1));

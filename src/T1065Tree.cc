@@ -63,6 +63,7 @@ void T1065Tree::Init(vector<string>& names, vector<string>& timetypes)
 	tree_->Branch((prefix_+"t0").c_str(), t0, (prefix_+"t0["+size_sample_var+"]/I").c_str());
 */
 
+  tree_->Branch("event",   &event, "event/i");
   tree_->Branch("ngroups",   &n_groups, "ngroups/i");
   tree_->Branch("nsamples",   &n_samples, "nsamples/i");
   tree_->Branch("nchannels",   &n_channels, "nchannels/i");

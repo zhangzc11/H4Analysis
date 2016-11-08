@@ -57,6 +57,7 @@ public:
   int t0[1024] = {0};
 */
 
+  int   event;
   short b_c[4][9][1024], tc[4]; 
   float time[4][1024];
   short raw[36][1024];
