@@ -35,6 +35,7 @@ private:
     WFTree                      outWFTree_;
     map<string, WFClass*>       WFs_;
     map<string, TH1*>           templates_;
+    int                         eventCount_;
 };
 
 DEFINE_PLUGIN(T1065Reco);
